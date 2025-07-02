@@ -49,15 +49,26 @@ export default function CreateServiceForm() {
     e.preventDefault();
     
     if (!context?.user?.fid) {
-      setError('You must be signed in to create a service');
+      setError('Please connect with Farcaster to create a service');
       return;
     }
     
     setIsSubmitting(true);
     setError('');
-
+    
     try {
+      console.log('Starting service creation...');
       const tags = formData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      
+      console.log('Sending request to /api/services with data:', {
+        title: formData.title,
+        description: formData.description,
+        price: formData.price,
+        currency: formData.currency,
+        delivery_days: formData.deliveryDays,
+        category: formData.category,
+        tags: tags
+      });
       
       const response = await fetch('/api/services', {
         method: 'POST',
@@ -65,26 +76,36 @@ export default function CreateServiceForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price) || 0,
-          deliveryDays: parseInt(formData.deliveryDays) || 3,
-          tags,
-          fid: context.user.fid,
-          userName: context.user.username,
-          userPfp: context.user.pfpUrl
+          title: formData.title,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          currency: formData.currency,
+          delivery_days: parseInt(formData.deliveryDays, 10),
+          category: formData.category,
+          tags: tags
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to create service');
+        console.error('Server responded with status:', response.status);
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('Error response data:', errorData);
+        } catch (jsonError) {
+          console.error('Failed to parse error response:', jsonError);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const errorMessage = errorData?.details || errorData?.error || 'Failed to create service';
+        throw new Error(errorMessage);
       }
 
+      console.log('Service created successfully, redirecting...');
       // Redirect to services page with success state
       router.push('/services?created=true');
     } catch (err) {
-      console.error('Error creating service:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create service. Please try again.');
+      console.error('Error in handleSubmit:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsSubmitting(false);
     }

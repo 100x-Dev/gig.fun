@@ -5,6 +5,7 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { MiniAppProvider } from "@neynar/react";
 import { SafeFarcasterSolanaProvider } from "~/components/providers/SafeFarcasterSolanaProvider";
+import SignIn from '~/components/SignIn';
 import { ANALYTICS_ENABLED } from "~/lib/constants";
 
 const WagmiProvider = dynamic(
@@ -21,6 +22,7 @@ export function Providers({ session, children }: { session: Session | null, chil
       <WagmiProvider>
         <MiniAppProvider analyticsEnabled={ANALYTICS_ENABLED} backButtonEnabled={true}>
           <SafeFarcasterSolanaProvider endpoint={solanaEndpoint}>
+            <SignIn />
             {children}
           </SafeFarcasterSolanaProvider>
         </MiniAppProvider>

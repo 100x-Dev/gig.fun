@@ -35,7 +35,7 @@ export function ActionsTab() {
     haptics,
     context,
   } = useMiniApp();
-  
+
   // --- State ---
   const [notificationState, setNotificationState] = useState({
     sendStatus: "",
@@ -115,7 +115,7 @@ export function ActionsTab() {
   return (
     <div className="space-y-3 px-6 w-full max-w-md mx-auto">
       {/* Share functionality */}
-      <ShareButton 
+      <ShareButton
         buttonText="Share Mini App"
         cast={{
           text: "Check out this awesome frame @1 @2 @3! 🚀🪐",
@@ -146,7 +146,7 @@ export function ActionsTab() {
       </Button>
 
       {/* Share URL copying */}
-      <Button 
+      <Button
         onClick={copyUserShareUrl}
         disabled={!context?.user?.fid}
         className="w-full"
@@ -170,7 +170,7 @@ export function ActionsTab() {
           <option value={'soft'}>Soft</option>
           <option value={'rigid'}>Rigid</option>
         </select>
-        <Button 
+        <Button
           onClick={triggerHapticFeedback}
           className="w-full"
         >

@@ -4,13 +4,15 @@ export interface Service {
   title: string;
   description: string;
   price: number;
-  currency: 'ETH' | 'USDC';
+  currency: 'ETH' | 'USDC' | string;
   deliveryDays: number;
   category: string;
   tags: string[];
-  status?: 'active' | 'paused' | 'completed';
-  createdAt?: Date;
-  updatedAt?: Date;
+  status?: 'active' | 'paused' | 'completed' | string;
+  userName?: string;       // Display name of the service provider
+  userPfp?: string;        // Profile picture URL of the service provider
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export const serviceCategories = [

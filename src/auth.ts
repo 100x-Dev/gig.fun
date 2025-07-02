@@ -3,10 +3,25 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { createAppClient, viemConnector } from "@farcaster/auth-client";
 
 declare module "next-auth" {
+  interface User {
+    id: string;
+    fid: number;
+    username?: string;
+    displayName?: string;
+    pfpUrl?: string;
+  }
+
   interface Session {
-    user: {
-      fid: number;
-    };
+    user: User;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    fid: number;
+    username?: string;
+    displayName?: string;
+    pfpUrl?: string;
   }
 }
 
@@ -31,66 +46,50 @@ export const authOptions: AuthOptions = {
     CredentialsProvider({
       name: "Sign in with Farcaster",
       credentials: {
-        message: {
-          label: "Message",
-          type: "text",
-          placeholder: "0x0",
-        },
-        signature: {
-          label: "Signature",
-          type: "text",
-          placeholder: "0x0",
-        },
-        // In a production app with a server, these should be fetched from
-        // your Farcaster data indexer rather than have them accepted as part
-        // of credentials.
-        // question: should these natively use the Neynar API?
-        name: {
-          label: "Name",
-          type: "text",
-          placeholder: "0x0",
-        },
-        pfp: {
-          label: "Pfp",
-          type: "text",
-          placeholder: "0x0",
-        },
+        // For the simplified sign-in flow, we accept user details directly.
+        // In a production app, you should switch to a cryptographic flow.
+        fid: { label: "FID", type: "text" },
+        username: { label: "Username", type: "text" },
+        pfpUrl: { label: "PFP URL", type: "text" },
       },
-      async authorize(credentials, req) {
-        const csrfToken = req?.body?.csrfToken;
-        if (!csrfToken) {
-          console.error('CSRF token is missing from request');
-          return null;
+      async authorize(credentials) {
+        // This is a simplified authorization flow for development.
+        // It trusts the credentials sent from our SignIn component.
+        if (credentials?.fid) {
+          const fid = parseInt(credentials.fid, 10);
+          return {
+            id: fid.toString(),
+            fid: fid,
+            username: credentials.username,
+            displayName: credentials.username,
+            pfpUrl: credentials.pfpUrl,
+          };
         }
-
-        const appClient = createAppClient({
-          ethereum: viemConnector(),
-        });
-
-        const domain = getDomainFromUrl(process.env.NEXTAUTH_URL);
-
-        const verifyResponse = await appClient.verifySignInMessage({
-          message: credentials?.message as string,
-          signature: credentials?.signature as `0x${string}`,
-          domain,
-          nonce: csrfToken,
-        });
-        const { success, fid } = verifyResponse;
-
-        if (!success) {
-          return null;
-        }
-
-        return {
-          id: fid.toString(),
-        };
+        // If credentials are not valid, return null.
+        return null;
       },
     }),
   ],
   callbacks: {
-    session: async ({ session, token }) => {
-      if (session?.user) {
-        session.user.fid = parseInt(token.sub ?? '');
+    async jwt({ token, user }) {
+      // Initial sign in
+      if (user) {
+        token.fid = user.fid;
+        token.username = user.username;
+        token.displayName = user.displayName;
+        token.pfpUrl = user.pfpUrl;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      if (token) {
+        session.user = {
+          id: token.sub || '',
+          fid: token.fid,
+          username: token.username,
+          displayName: token.displayName,
+          pfpUrl: token.pfpUrl
+        };
       }
       return session;
     },
