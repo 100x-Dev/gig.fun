@@ -21,18 +21,41 @@ export async function GET(request: Request) {
   }
 
   try {
-    const neynar = new NeynarAPIClient({ apiKey });
     const fidsArray = fids.split(',').map(fid => parseInt(fid.trim()));
     
-    const { users } = await neynar.fetchBulkUsers({
-      fids: fidsArray,
-    });
+    try {
+      const neynar = new NeynarAPIClient({ apiKey });
+      const { users } = await neynar.fetchBulkUsers({
+        fids: fidsArray,
+      });
 
+      // If we got users from Neynar, return them
+      if (users && users.length > 0) {
+        return NextResponse.json({ users });
+      }
+    } catch (error) {
+      console.warn('Neynar API request failed, returning basic user data:', error);
+    }
+    
+    // If Neynar API fails or returns no users, return basic user data
+    const users = fidsArray.map(fid => ({
+      fid,
+      username: `user${fid}`,
+      displayName: `User ${fid}`,
+      pfpUrl: null,
+      profile: {
+        bio: { text: '' },
+      },
+      followerCount: 0,
+      followingCount: 0,
+    }));
+    
     return NextResponse.json({ users });
+    
   } catch (error) {
-    console.error('Failed to fetch users:', error);
+    console.error('Unexpected error in users API:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch users. Please check your Neynar API key and try again.' },
+      { error: 'An unexpected error occurred while fetching user data.' },
       { status: 500 }
     );
   }

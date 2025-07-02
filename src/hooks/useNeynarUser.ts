@@ -16,21 +16,42 @@ export function useNeynarUser(context?: { user?: { fid?: number } }) {
       setError(null);
       return;
     }
+    
+    // Create a basic user object with just the FID
+    const fallbackUser = {
+      fid: context.user.fid,
+      score: 0, // Default score
+      username: `user${context.user.fid}`, // Fallback username
+      displayName: `User ${context.user.fid}`, // Fallback display name
+    };
+
     setLoading(true);
     setError(null);
+    
+    // Try to fetch from Neynar API, but fall back to basic user if it fails
     fetch(`/api/users?fids=${context.user.fid}`)
       .then((response) => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          console.warn('Neynar API request failed, using fallback user data');
+          return { users: [fallbackUser] };
+        }
         return response.json();
       })
       .then((data) => {
-        if (data.users?.[0]) {
-          setUser(data.users[0]);
-        } else {
-          setUser(null);
-        }
+        // If we got users from the API, use them, otherwise use the fallback
+        const userData = data.users?.[0] || fallbackUser;
+        setUser({
+          fid: userData.fid,
+          score: userData.score || 0,
+          // Include any additional fields you need
+          ...userData,
+        });
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        console.warn('Error fetching user from Neynar, using fallback:', err);
+        setUser(fallbackUser);
+        setError(err.message);
+      })
       .finally(() => setLoading(false));
   }, [context?.user?.fid]);
 

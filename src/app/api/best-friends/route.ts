@@ -30,6 +30,14 @@ export async function GET(request: Request) {
     );
 
     if (!response.ok) {
+      if (response.status === 402) {
+        // If payment is required, return an empty array with a flag
+        return NextResponse.json({ 
+          bestFriends: [],
+          requiresUpgrade: true,
+          message: 'This feature requires a paid Neynar API plan.'
+        });
+      }
       throw new Error(`Neynar API error: ${response.statusText}`);
     }
 

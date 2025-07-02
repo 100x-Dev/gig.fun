@@ -27,6 +27,7 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
   const [isProcessing, setIsProcessing] = useState(false);
   const [bestFriends, setBestFriends] = useState<{ fid: number; username: string; }[] | null>(null);
   const [isLoadingBestFriends, setIsLoadingBestFriends] = useState(false);
+  const [requiresUpgrade, setRequiresUpgrade] = useState(false);
   const { context, actions } = useMiniApp();
 
   // Fetch best friends if needed
@@ -35,8 +36,18 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
       setIsLoadingBestFriends(true);
       fetch(`/api/best-friends?fid=${context.user.fid}`)
         .then(res => res.json())
-        .then(data => setBestFriends(data.bestFriends))
-        .catch(err => console.error('Failed to fetch best friends:', err))
+        .then(data => {
+          if (data.requiresUpgrade) {
+            setRequiresUpgrade(true);
+            console.warn('Best friends feature requires a paid Neynar plan:', data.message);
+          } else {
+            setBestFriends(data.bestFriends);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch best friends:', err);
+          setRequiresUpgrade(true); // Assume upgrade needed on error
+        })
         .finally(() => setIsLoadingBestFriends(false));
     }
   }, [cast.bestFriends, context?.user?.fid]);
@@ -49,7 +60,10 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
 
       // Process best friends if enabled and data is loaded
       if (cast.bestFriends) {
-        if (bestFriends) {
+        if (requiresUpgrade) {
+          // If upgrade is required, remove @N patterns
+          finalText = finalText.replace(/@\d+/g, '');
+        } else if (bestFriends) {
           // Replace @N with usernames, or remove if no matching friend
           finalText = finalText.replace(/@\d+/g, (match) => {
             const friendIndex = parseInt(match.slice(1)) - 1;
