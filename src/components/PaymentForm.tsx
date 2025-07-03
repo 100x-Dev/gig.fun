@@ -33,7 +33,7 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
   const isSupportedCurrency = ['ETH', 'USDC'].includes(service.currency.toUpperCase());
 
   const handlePayment = () => {
-    if (!service.wallet_address) {
+    if (!service.walletAddress) {
       alert('Provider wallet address is not available.');
       return;
     }
@@ -42,7 +42,7 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
 
     if (currency === 'ETH') {
       sendTransaction({
-        to: service.wallet_address as `0x${string}`,
+        to: service.walletAddress as `0x${string}`,
         value: parseEther(service.price.toString()),
         data: '0x',
       });
@@ -52,7 +52,7 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
         abi: USDC_ABI,
         functionName: 'transfer',
         args: [
-          service.wallet_address as `0x${string}`,
+          service.walletAddress as `0x${string}`,
           parseUnits(service.price.toString(), 6), // USDC has 6 decimals
         ],
       });
@@ -69,14 +69,14 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
           <p><strong>Service:</strong> {service.title}</p>
           <p><strong>Provider:</strong> {service.userName}</p>
           <p><strong>Price:</strong> {service.price} {service.currency}</p>
-          <p className="text-sm text-gray-500 break-all"><strong>To:</strong> {service.wallet_address}</p>
+          <p className="text-sm text-gray-500 break-all"><strong>To:</strong> {service.walletAddress}</p>
         </div>
 
         <div className="flex justify-end space-x-4">
           <Button variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
-          <Button onClick={handlePayment} disabled={isPending || !service.wallet_address || !isSupportedCurrency}>
+          <Button onClick={handlePayment} disabled={isPending || !service.walletAddress || !isSupportedCurrency}>
             {isPending ? 'Processing...' : `Pay ${service.price} ${service.currency}`}
           </Button>
         </div>

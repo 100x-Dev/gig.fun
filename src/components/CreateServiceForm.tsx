@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMiniApp } from '@neynar/react';
 import { useSession } from 'next-auth/react';
+import { ArrowLeft } from 'lucide-react';
 import { serviceCategories } from '~/types/service';
+import { Button } from './ui/Button';
 
 type ServiceFormData = {
   title: string;
@@ -134,29 +136,43 @@ export default function CreateServiceForm() {
     );
   }
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-      <div className="flex items-center mb-6">
-        {context.user?.pfpUrl && (
-          <img 
-            src={context.user.pfpUrl} 
-            alt={context.user.displayName || 'User'} 
-            className="w-10 h-10 rounded-full mr-3"
-          />
-        )}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Create a New Service</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {context.user?.displayName || `@${context.user?.username}`}
-          </p>
-        </div>
+    <div className="max-w-2xl mx-auto p-4">
+      <div className="mb-4">
+        <button 
+          onClick={handleBack}
+          className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full h-9 w-9 flex items-center justify-center"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
       </div>
-      
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-100 rounded">
-          {error}
+      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <div className="flex items-center mb-6">
+          {context.user?.pfpUrl && (
+            <img 
+              src={context.user.pfpUrl} 
+              alt={context.user.displayName || 'User'} 
+              className="w-10 h-10 rounded-full mr-3"
+            />
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Service Details</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {context.user?.displayName || `@${context.user?.username}`}
+            </p>
+          </div>
         </div>
-      )}
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-100 rounded">
+            {error}
+          </div>
+        )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
@@ -290,6 +306,7 @@ export default function CreateServiceForm() {
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

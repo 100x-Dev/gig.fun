@@ -33,10 +33,35 @@ function mapToService(service: DatabaseService): Service {
     fid: service.fid,
     userName: service.user_name,
     userPfp: service.user_pfp,
-    wallet_address: service.wallet_address,
+    walletAddress: service.wallet_address,
     createdAt: service.created_at,
     updatedAt: service.updated_at
   };
+}
+
+export async function getMyServices(fid: number): Promise<Service[]> {
+  try {
+    console.log(`Fetching services for FID: ${fid}...`);
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('fid', fid)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase query error:', error);
+      throw new Error(`Failed to fetch user services: ${error.message}`);
+    }
+
+    if (!data) {
+      return [];
+    }
+
+    return (data as DatabaseService[]).map(mapToService);
+  } catch (err) {
+    console.error('Error in getMyServices:', err);
+    throw err;
+  }
 }
 
 export async function getServices(): Promise<Service[]> {

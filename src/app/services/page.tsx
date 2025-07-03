@@ -1,10 +1,12 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '~/components/ui/Button';
+import { Input } from '~/components/ui/Input';
+import { Search, X } from 'lucide-react';
 import ServiceCard from '~/components/ServiceCard';
 import { Service } from '~/types/service';
 import { getServices } from '~/utils/serviceStorage';
@@ -32,6 +34,8 @@ interface ServicesPageProps {
 
 export default function ServicesPage({ initialServices = [] }: ServicesPageProps) {
   const [services, setServices] = useState<Service[]>(initialServices);
+  const [filteredServices, setFilteredServices] = useState<Service[]>(initialServices);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session, status } = useSession();
@@ -40,6 +44,24 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
   const router = useRouter();
   const [initialLoad, setInitialLoad] = useState(true);
 
+  // Filter services based on search query
+  const filterServices = useCallback(() => {
+    if (!searchQuery.trim()) {
+      return services;
+    }
+    const query = searchQuery.toLowerCase();
+    return services.filter(service => 
+      service.title.toLowerCase().includes(query) ||
+      service.description.toLowerCase().includes(query) ||
+      service.tags?.some(tag => tag.toLowerCase().includes(query))
+    );
+  }, [searchQuery, services]);
+
+  // Update filtered services when search query or services change
+  useEffect(() => {
+    setFilteredServices(filterServices());
+  }, [filterServices]);
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -47,37 +69,32 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
         setError(null);
         console.log('Starting service fetch with user:', user?.fid);
         
-        // First fetch public services
-        const publicServices = await getServices();
-        console.log('Fetched public services count:', publicServices?.length);
-        console.log('Public services:', publicServices);
+        // Fetch all services
+        const servicesFromUtil = await getServices();
+        console.log('Fetched services count:', servicesFromUtil.length);
 
-        // If user is authenticated, fetch their services
+        // Filter out current user's services if logged in
+        let servicesToDisplay = servicesFromUtil;
         if (user?.fid) {
-          console.log('Fetching user services for FID:', user.fid);
-          const { data: userServices, error: userError } = await supabase
-            .from('services')
-            .select('*')
-            .eq('fid', user.fid)
-            .order('created_at', { ascending: false });
-
-          if (userError) {
-            console.error('Error fetching user services:', userError);
-          } else if (userServices) {
-            console.log('Fetched user services count:', userServices.length);
-            // Combine both sets of services
-            const combined = [...publicServices, ...(userServices || [])];
-            console.log('Combined services count:', combined.length);
-            // Remove duplicates and sort by created_at
-            const uniqueServices = Array.from(new Map(combined.map(service => [service.id, service])).values());
-            uniqueServices.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-            console.log('Final services count:', uniqueServices.length);
-            setServices(uniqueServices);
-          }
-        } else {
-          console.log('No user FID, using only public services');
-          setServices(publicServices);
+          servicesToDisplay = servicesToDisplay.filter(
+            (service: Service) => service.fid.toString() !== user.fid.toString()
+          );
+          console.log(
+            "Filtered services (excluding user's):",
+            servicesToDisplay.length
+          );
         }
+
+        // Sort by createdAt (newest first)
+        const sortedServices = [...servicesToDisplay].sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
+
+        setServices(sortedServices);
+        console.log('Final services count:', sortedServices.length);
+        setFilteredServices(sortedServices);
 
       } catch (err) {
         console.error('Error fetching services:', err);
@@ -113,18 +130,44 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
     );
   }
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse Services</h1>
-        {user && (
-          <Button onClick={handleCreateNew}>
-            Create New Service
-          </Button>
-        )}
+        <div className="w-full md:w-auto flex-1 md:max-w-md">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              type="text"
+              placeholder="Search services..."
+              className="pl-10 pr-10 w-full"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {services.length === 0 ? (
+      {filteredServices.length === 0 ? (
         <div className="text-center py-12">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
@@ -140,8 +183,12 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
               d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No services found</h3>
-          <p className="mt-1 text-sm text-gray-500">Be the first to create a service!</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            {searchQuery ? 'No matching services found' : 'No services found'}
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchQuery ? 'Try a different search term' : 'Be the first to create a service!'}
+          </p>
           {user && (
             <div className="mt-6">
               <Button onClick={handleCreateNew}>
@@ -152,8 +199,12 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => (
-            <ServiceCard key={service.id} service={service} currentUser={user} />
+          {filteredServices.map((service) => (
+            <ServiceCard 
+              key={service.id} 
+              service={service} 
+              currentUser={user ? { fid: user.fid } : null} 
+            />
           ))}
         </div>
       )}

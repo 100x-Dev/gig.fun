@@ -34,6 +34,8 @@
     "@neynar/nodejs-sdk": "^2.19.0",
     "@neynar/react": "^1.2.5",
     "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-tabs": "^1.1.12",
     "@solana/wallet-adapter-react": "^0.15.38",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",

@@ -1,21 +1,25 @@
 import { useState } from 'react';
-import { Service } from '../types/service';
+import { useRouter } from 'next/navigation';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from './ui/Button';
 import PaymentForm from './PaymentForm';
+import { Service } from '~/types/service';
+import { CurrentUser } from '~/types/user';
 
 // Define a minimal type for the user prop to avoid dependency on external packages
-interface CurrentUser {
-  fid: number | string;
-}
-
 interface ServiceCardProps {
   service: Service;
   currentUser: CurrentUser | null;
+  showActions?: boolean;
+  onStatusChange?: () => void;
 }
 
-export default function ServiceCard({ service, currentUser }: ServiceCardProps) {
+export default function ServiceCard({ service, currentUser, showActions = false, onStatusChange }: ServiceCardProps) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if the current user is the service creator.
   const isServiceCreator = !!currentUser?.fid && currentUser.fid.toString() === service.fid.toString();
@@ -30,6 +34,47 @@ export default function ServiceCard({ service, currentUser }: ServiceCardProps) 
 
   const handleCloseBookingForm = () => {
     setShowBookingForm(false);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/services/edit/${service.id}`);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to deactivate this service?')) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`/api/services/${service.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'inactive' }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update service status');
+      }
+
+      // Refresh the services list through the parent component
+      if (onStatusChange) {
+        onStatusChange();
+      }
+    } catch (err) {
+      console.error('Error deactivating service:', err);
+      setError(err instanceof Error ? err.message : 'Failed to deactivate service');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -104,14 +149,51 @@ export default function ServiceCard({ service, currentUser }: ServiceCardProps) 
             {isExpanded ? 'Show Less' : 'Show More'}
           </button>
 
-          {currentUser && !isServiceCreator && (
-            <Button
-              onClick={handleBookNow}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Book Now
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {showActions && isServiceCreator && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700"
+                  onClick={handleEdit}
+                  title="Edit service"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700"
+                    onClick={handleDelete}
+                    title="Deactivate service"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                  {error && (
+                    <div className="absolute left-full ml-2 mt-1 w-48 rounded bg-red-50 p-2 text-xs text-red-600 shadow-lg">
+                      {error}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {currentUser && !isServiceCreator && (
+              <Button
+                onClick={handleBookNow}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Book Now
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

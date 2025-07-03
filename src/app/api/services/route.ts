@@ -144,19 +144,31 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { data, error } = await supabase
+    const { searchParams } = new URL(request.url);
+    const fid = searchParams.get('fid');
+    
+    let query = supabase
       .from('services')
-      .select('id, title, description, price, currency, delivery_days, category, tags, user_name, user_pfp, wallet_address')
-      .eq('status', 'active')
+      .select('*')
       .order('created_at', { ascending: false });
+    
+    // If fid is provided, filter by that specific user
+    if (fid) {
+      query = query.eq('fid', fid);
+    } else {
+      // Otherwise, only show active services (for public listing)
+      query = query.eq('status', 'active');
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw error;
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data || []);
   } catch (error) {
     console.error('Error fetching services:', error);
     return NextResponse.json(
