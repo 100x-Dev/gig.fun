@@ -146,21 +146,21 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const { data: services, error } = await supabase
+    const { data, error } = await supabase
       .from('services')
-      .select('*')
+      .select('id, title, description, price, currency, delivery_days, category, tags, user_name, user_pfp, wallet_address')
+      .eq('status', 'active')
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase error:', error);
-      throw new Error(error.message || 'Failed to fetch services');
+      throw error;
     }
 
-    return NextResponse.json(services || []);
-  } catch (error: any) {
+    return NextResponse.json(data);
+  } catch (error) {
     console.error('Error fetching services:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'Failed to fetch services' },
       { status: 500 }
     );
   }

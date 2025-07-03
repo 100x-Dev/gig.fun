@@ -11,6 +11,7 @@ export interface Service {
   status?: 'active' | 'paused' | 'completed' | string;
   userName?: string;       // Display name of the service provider
   userPfp?: string;        // Profile picture URL of the service provider
+  wallet_address?: string; // Wallet address of the service provider
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }

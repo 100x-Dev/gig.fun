@@ -1,15 +1,5 @@
 import { Service } from '~/types/service';
 import { supabase } from '~/lib/supabase/client';
-import { useMiniApp } from '@neynar/react';
-
-// Create a hook to get FID
-const useFID = () => {
-  const { user } = useMiniApp();
-  return user?.fid;
-};
-
-// Export the hook
-export { useFID };
 
 interface DatabaseService {
   id: string;
@@ -24,6 +14,7 @@ interface DatabaseService {
   fid: number;
   user_name?: string;
   user_pfp?: string;
+  wallet_address?: string;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +33,7 @@ function mapToService(service: DatabaseService): Service {
     fid: service.fid,
     userName: service.user_name,
     userPfp: service.user_pfp,
+    wallet_address: service.wallet_address,
     createdAt: service.created_at,
     updatedAt: service.updated_at
   };
