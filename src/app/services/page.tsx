@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMiniApp } from '@neynar/react';
+import { useSession } from 'next-auth/react';
 import { Button } from '~/components/ui/Button';
 import ServiceCard from '~/components/ServiceCard';
 import { Service } from '~/types/service';
@@ -34,7 +34,9 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
   const [services, setServices] = useState<Service[]>(initialServices);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useMiniApp();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const userLoading = status === 'loading';
   const router = useRouter();
   const [initialLoad, setInitialLoad] = useState(true);
 
@@ -92,7 +94,7 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
     router.push('/services/new');
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return null; // Don't show anything while loading
   }
 
@@ -151,7 +153,7 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
-            <ServiceCard key={service.id} service={service} />
+            <ServiceCard key={service.id} service={service} currentUser={user} />
           ))}
         </div>
       )}
