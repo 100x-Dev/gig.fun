@@ -25,6 +25,7 @@ export interface Database {
           fid: number
           user_name: string | null
           user_pfp: string | null
+          wallet_address: string | null
         }
         Insert: {
           id?: string
@@ -41,6 +42,7 @@ export interface Database {
           fid: number
           user_name?: string | null
           user_pfp?: string | null
+          wallet_address?: string | null
         }
         Update: {
           id?: string
@@ -57,6 +59,7 @@ export interface Database {
           fid?: number
           user_name?: string | null
           user_pfp?: string | null
+          wallet_address?: string | null
         }
       }
     }

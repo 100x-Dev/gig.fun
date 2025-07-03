@@ -9,6 +9,7 @@ declare module "next-auth" {
     username?: string;
     displayName?: string;
     pfpUrl?: string;
+    walletAddress?: string | null;
   }
 
   interface Session {
@@ -22,6 +23,7 @@ declare module "next-auth/jwt" {
     username?: string;
     displayName?: string;
     pfpUrl?: string;
+    walletAddress?: string | null;
   }
 }
 
@@ -51,45 +53,93 @@ export const authOptions: AuthOptions = {
         fid: { label: "FID", type: "text" },
         username: { label: "Username", type: "text" },
         pfpUrl: { label: "PFP URL", type: "text" },
+        walletAddress: { label: "Wallet Address", type: "text" },
       },
       async authorize(credentials) {
-        // This is a simplified authorization flow for development.
-        // It trusts the credentials sent from our SignIn component.
-        if (credentials?.fid) {
-          const fid = parseInt(credentials.fid, 10);
-          return {
-            id: fid.toString(),
-            fid: fid,
-            username: credentials.username,
-            displayName: credentials.username,
-            pfpUrl: credentials.pfpUrl,
-          };
+        if (!credentials) {
+          console.log('No credentials provided to authorize');
+          return null;
         }
-        // If credentials are not valid, return null.
+        
+        // Type assertion for credentials
+        const creds = credentials as {
+          fid: string;
+          username?: string;
+          pfpUrl?: string;
+          walletAddress?: string;
+        };
+        
+        console.log('Authorize credentials received:', {
+          fid: creds.fid,
+          username: creds.username,
+          hasPfpUrl: !!creds.pfpUrl,
+          walletAddress: creds.walletAddress || 'Not provided'
+        });
+        
+        if (creds.fid) {
+          const user = {
+            id: creds.fid,
+            fid: Number(creds.fid),
+            username: creds.username || `user-${creds.fid}`,
+            displayName: creds.username || `User ${creds.fid}`,
+            pfpUrl: creds.pfpUrl,
+            walletAddress: creds.walletAddress || null,
+          };
+          
+          console.log('Creating user session with:', {
+            fid: user.fid,
+            username: user.username,
+            hasPfpUrl: !!user.pfpUrl,
+            walletAddress: user.walletAddress || 'No wallet address'
+          });
+          
+          return user;
+        }
+        
+        console.log('No FID found in credentials, returning null');
         return null;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // Initial sign in
       if (user) {
         token.fid = user.fid;
         token.username = user.username;
         token.displayName = user.displayName;
         token.pfpUrl = user.pfpUrl;
+        token.walletAddress = user.walletAddress || null;
+        console.log('JWT - Initial sign in with wallet address:', token.walletAddress);
       }
+      
+      // Update token with session data if triggered by update()
+      if (trigger === 'update' && session) {
+        // Type assertion to handle the session update
+        const updatedSession = session as { user?: { walletAddress?: string | null } };
+        if (updatedSession.user?.walletAddress !== undefined) {
+          token.walletAddress = updatedSession.user.walletAddress;
+        }
+      }
+      
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
+      // Add custom properties to the session
       if (token) {
         session.user = {
           id: token.sub || '',
           fid: token.fid,
           username: token.username,
           displayName: token.displayName,
-          pfpUrl: token.pfpUrl
+          pfpUrl: token.pfpUrl,
+          walletAddress: token.walletAddress || null
         };
+        console.log('Session - User data:', {
+          id: session.user.id,
+          fid: session.user.fid,
+          walletAddress: session.user.walletAddress
+        });
       }
       return session;
     },

@@ -42,7 +42,10 @@ export async function POST(request: Request) {
 
   try {
     const session = await getServerSession(authOptions);
+    console.log('Service creation - Full session object:', JSON.stringify(session, null, 2));
+    
     if (!session || !session.user?.fid) {
+      console.error('Service creation failed - No valid session or FID found');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -58,6 +61,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get wallet address from the session if available
+    const walletAddress = session.user.walletAddress || null;
+    console.log('Service creation - Wallet address from session:', {
+      walletAddress,
+      hasWalletAddress: !!walletAddress,
+      fid: session.user.fid,
+      userId: session.user.id
+    });
+    
+    if (!walletAddress) {
+      console.warn('Service creation - No wallet address found in session');
+    }
+
     const serviceData: ServiceInsert = {
       title: requestBody.title.trim(),
       description: requestBody.description.trim(),
@@ -70,6 +86,7 @@ export async function POST(request: Request) {
       fid: session.user.fid,
       user_name: session.user.username || `user_${session.user.fid}`,
       user_pfp: session.user.pfpUrl || '',
+      wallet_address: walletAddress, // Using the correct column name with underscore
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

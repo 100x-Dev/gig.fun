@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMiniApp } from '@neynar/react';
+import { useSession } from 'next-auth/react';
 import { serviceCategories } from '~/types/service';
 
 type ServiceFormData = {
@@ -18,6 +19,7 @@ type ServiceFormData = {
 export default function CreateServiceForm() {
   const router = useRouter();
   const { context } = useMiniApp();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isMounted, setIsMounted] = useState(false);
@@ -32,7 +34,6 @@ export default function CreateServiceForm() {
     tags: ''
   });
 
-  // Set mounted state to avoid hydration issues
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -47,43 +48,42 @@ export default function CreateServiceForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!context?.user?.fid) {
       setError('Please connect with Farcaster to create a service');
       return;
     }
-    
+
+    const walletAddress = session?.user?.walletAddress;
+
+    if (!walletAddress) {
+      setError('Farcaster wallet address not found in session. Please sign in again.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
-    
+
     try {
-      console.log('Starting service creation...');
       const tags = formData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-      
-      console.log('Sending request to /api/services with data:', {
+
+      const serviceData = {
         title: formData.title,
         description: formData.description,
-        price: formData.price,
+        price: parseFloat(formData.price),
         currency: formData.currency,
-        delivery_days: formData.deliveryDays,
+        delivery_days: parseInt(formData.deliveryDays, 10),
         category: formData.category,
-        tags: tags
-      });
+        tags: tags,
+        provider_wallet_address: walletAddress,
+      };
       
       const response = await fetch('/api/services', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          currency: formData.currency,
-          delivery_days: parseInt(formData.deliveryDays, 10),
-          category: formData.category,
-          tags: tags
-        }),
+        body: JSON.stringify(serviceData),
       });
 
       if (!response.ok) {
@@ -137,7 +137,7 @@ export default function CreateServiceForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
       <div className="flex items-center mb-6">
-        {context.user.pfpUrl && (
+        {context.user?.pfpUrl && (
           <img 
             src={context.user.pfpUrl} 
             alt={context.user.displayName || 'User'} 
@@ -147,7 +147,7 @@ export default function CreateServiceForm() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Create a New Service</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {context.user.displayName || `@${context.user.username}`}
+            {context.user?.displayName || `@${context.user?.username}`}
           </p>
         </div>
       </div>
