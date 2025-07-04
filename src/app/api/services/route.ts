@@ -1,28 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '~/auth';
-import { createClient } from '~/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { supabase } from '~/lib/supabase/server';
 import type { Database } from '~/types/supabase';
-
-// Initialize Supabase clients inside the functions that use them
-async function getSupabaseClient() {
-  return await createClient();
-}
-
-// Create admin client for bypassing RLS when needed
-function getSupabaseAdminClient() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  );
-}
 
 // Type for the service data we'll be inserting
 type ServiceInsert = Database['public']['Tables']['services']['Insert'];
@@ -61,23 +41,13 @@ export async function POST(request: Request) {
   });
 
   try {
-    console.log('Available cookies:', request.headers.get('cookie') || 'No cookies found');
-    
     const session = await getServerSession(authOptions);
     console.log('Service creation - Full session object:', JSON.stringify(session, null, 2));
     
-    if (!session) {
-      console.error('Service creation failed - No session found');
+    if (!session || !session.user?.fid) {
+      console.error('Service creation failed - No valid session or FID found');
       return NextResponse.json(
-        { error: 'No active session found. Please sign in again.' },
-        { status: 401 }
-      );
-    }
-    
-    if (!session.user?.fid) {
-      console.error('Service creation failed - No FID found in session');
-      return NextResponse.json(
-        { error: 'User ID (FID) not found in session' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
@@ -124,9 +94,8 @@ export async function POST(request: Request) {
     console.log('Prepared service data:', JSON.stringify(serviceData, null, 2));
 
     try {
-      // Insert the service into the database using admin client to bypass RLS
-      const supabaseAdmin = getSupabaseAdminClient();
-      const { data: insertedData, error, status, statusText } = await supabaseAdmin
+      // Insert the service into the database
+      const { data: insertedData, error, status, statusText } = await supabase
         .from('services')
         .insert([serviceData])
         .select()
@@ -180,7 +149,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const fid = searchParams.get('fid');
     
-    const supabase = await getSupabaseClient();
     let query = supabase
       .from('services')
       .select('*')

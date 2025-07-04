@@ -12,92 +12,64 @@ type SafeFarcasterSolanaProviderProps = {
   children: React.ReactNode;
 };
 
-const SolanaProviderContext = createContext<{ 
-  hasSolanaProvider: boolean;
-  isChecking: boolean;
-  isSecureContext: boolean;
-}>({ 
-  hasSolanaProvider: false,
-  isChecking: true,
-  isSecureContext: false
-});
+const SolanaProviderContext = createContext<{ hasSolanaProvider: boolean }>({ hasSolanaProvider: false });
 
 export function SafeFarcasterSolanaProvider({ endpoint, children }: SafeFarcasterSolanaProviderProps) {
   const isClient = typeof window !== "undefined";
   const [hasSolanaProvider, setHasSolanaProvider] = useState<boolean>(false);
-  const [isChecking, setIsChecking] = useState<boolean>(true);
-  const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
+  const [checked, setChecked] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isClient) return;
-
     let cancelled = false;
-    const isSecure = window.isSecureContext;
-    setIsSecureContext(isSecure);
-
-    if (!isSecure) {
-      console.warn('Not in a secure context. Some features may be limited.');
-      setIsChecking(false);
-      return;
-    }
-
-    const checkProvider = async () => {
+    (async () => {
       try {
-        // Use a try-catch block to handle any potential errors
         const provider = await sdk.wallet.getSolanaProvider();
         if (!cancelled) {
           setHasSolanaProvider(!!provider);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          console.warn('Error getting Solana provider:', error);
           setHasSolanaProvider(false);
         }
       } finally {
         if (!cancelled) {
-          setIsChecking(false);
+          setChecked(true);
         }
       }
-    };
-
-    // Add a small delay to prevent potential race conditions
-    const timeoutId = setTimeout(checkProvider, 100);
-
+    })();
     return () => {
       cancelled = true;
-      clearTimeout(timeoutId);
     };
   }, [isClient]);
 
-  // Don't render anything during server-side rendering
-  if (!isClient) {
-    return null;
-  }
+  useEffect(() => {
+    let errorShown = false;
+    const origError = console.error;
+    console.error = (...args) => {
+      if (
+        typeof args[0] === "string" &&
+        args[0].includes("WalletConnectionError: could not get Solana provider")
+      ) {
+        if (!errorShown) {
+          origError(...args);
+          errorShown = true;
+        }
+        return;
+      }
+      origError(...args);
+    };
+    return () => {
+      console.error = origError;
+    };
+  }, []);
 
-  // If we're not in a secure context, still render children but with provider context
-  if (!isSecureContext) {
-    return (
-      <SolanaProviderContext.Provider value={{ 
-        hasSolanaProvider: false, 
-        isChecking: false,
-        isSecureContext: false
-      }}>
-        {children}
-      </SolanaProviderContext.Provider>
-    );
-  }
-
-  // If still checking, show a loading state or null
-  if (isChecking) {
+  if (!isClient || !checked) {
     return null;
   }
 
   return (
-    <SolanaProviderContext.Provider value={{ 
-      hasSolanaProvider, 
-      isChecking: false,
-      isSecureContext: true
-    }}>
+    <SolanaProviderContext.Provider value={{ hasSolanaProvider }}>
       {hasSolanaProvider ? (
         <FarcasterSolanaProvider endpoint={endpoint}>
           {children}
@@ -110,9 +82,5 @@ export function SafeFarcasterSolanaProvider({ endpoint, children }: SafeFarcaste
 }
 
 export function useHasSolanaProvider() {
-  const context = React.useContext(SolanaProviderContext);
-  if (context === undefined) {
-    throw new Error('useHasSolanaProvider must be used within a SafeFarcasterSolanaProvider');
-  }
-  return context;
+  return React.useContext(SolanaProviderContext).hasSolanaProvider;
 }

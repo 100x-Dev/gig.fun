@@ -1,11 +1,8 @@
-import React from 'react';
-
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   isLoading?: boolean;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
-  asChild?: boolean;
 }
 
 export function Button({ 
@@ -14,7 +11,6 @@ export function Button({
   isLoading = false, 
   variant = 'primary',
   size = 'md',
-  asChild = false,
   ...props 
 }: ButtonProps) {
   const baseClasses = "btn";
@@ -42,28 +38,18 @@ export function Button({
     className
   ].join(' ');
 
-  const content = isLoading ? (
-    <div className="flex items-center justify-center">
-      <div className="spinner-primary h-5 w-5" />
-    </div>
-  ) : (
-    children
-  );
-
-  if (asChild) {
-    const child = React.Children.only(children) as React.ReactElement<React.HTMLAttributes<HTMLElement>>;
-    return React.cloneElement(child, {
-      className: [child.props.className, combinedClasses].filter(Boolean).join(' '),
-      ...(props as React.HTMLAttributes<HTMLElement>)
-    });
-  }
-
   return (
     <button
       className={combinedClasses}
       {...props}
     >
-      {content}
+      {isLoading ? (
+        <div className="flex items-center justify-center">
+          <div className="spinner-primary h-5 w-5" />
+        </div>
+      ) : (
+        children
+      )}
     </button>
   );
 }

@@ -85,7 +85,6 @@ export default function CreateServiceForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',  // This ensures cookies are sent with the request
         body: JSON.stringify(serviceData),
       });
 
