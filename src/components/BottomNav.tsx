@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Briefcase, User } from 'lucide-react';
+import { Home, Search, ShoppingBag, User } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -19,17 +19,17 @@ export default function BottomNav() {
         </Link>
         <Link 
           href="/services" 
-          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/services') && !pathname.startsWith('/my-gigs') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
+          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/services') && !pathname.startsWith('/paid-gigs') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
         >
           <Search className="h-5 w-5" />
           <span className="text-xs mt-1">Browse</span>
         </Link>
         <Link 
-          href="/my-gigs" 
-          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/my-gigs') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
+          href="/gigs-purchased" 
+          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/gigs-purchased') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
         >
-          <Briefcase className="h-5 w-5" />
-          <span className="text-xs mt-1">My Gigs</span>
+          <ShoppingBag className="h-5 w-5" />
+          <span className="text-xs mt-1">Gigs Purchased</span>
         </Link>
         <Link 
           href="/profile" 
