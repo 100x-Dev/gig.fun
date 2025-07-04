@@ -10,6 +10,7 @@ interface DialogProps {
   onConfirm?: () => void;
   cancelText?: string;
   size?: 'sm' | 'md' | 'lg';
+  footer?: React.ReactNode;
 }
 
 export function Dialog({
@@ -21,6 +22,7 @@ export function Dialog({
   onConfirm,
   cancelText = 'Cancel',
   size = 'md',
+  footer,
 }: DialogProps) {
   if (!isOpen) return null;
 
@@ -68,23 +70,25 @@ export function Dialog({
           </div>
           
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-            {onConfirm && (
-              <Button
-                type="button"
-                onClick={onConfirm}
-                className="w-full sm:w-auto"
-              >
-                {confirmText}
-              </Button>
+            {footer ? footer : (
+              <>
+                {onConfirm && (
+                  <Button
+                    type="button"
+                    onClick={onConfirm}
+                  >
+                    {confirmText}
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                >
+                  {cancelText}
+                </Button>
+              </>
             )}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="mt-3 w-full sm:mt-0 sm:w-auto"
-            >
-              {cancelText}
-            </Button>
           </div>
         </div>
       </div>

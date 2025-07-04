@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, ShoppingBag, User } from 'lucide-react';
+import { Home, Search, ShoppingBag, User, Package } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -30,6 +30,13 @@ export default function BottomNav() {
         >
           <ShoppingBag className="h-5 w-5" />
           <span className="text-xs mt-1">Gigs Purchased</span>
+        </Link>
+        <Link 
+          href="/my-orders" 
+          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/my-orders') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
+        >
+          <Package className="h-5 w-5" />
+          <span className="text-xs mt-1">My Orders</span>
         </Link>
         <Link 
           href="/profile" 

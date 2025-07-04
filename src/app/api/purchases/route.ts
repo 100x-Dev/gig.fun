@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { serviceId, amount, currency, paymentTxHash } = body;
+    const { serviceId, amount, currency, paymentTxHash, buyerNotes } = body;
 
     // Get service details to verify seller
     const { data: service, error: serviceError } = await supabase
@@ -135,7 +135,8 @@ export async function POST(request: Request) {
         amount,
         currency,
         payment_tx_hash: paymentTxHash || null,
-        status: paymentTxHash ? 'completed' : 'pending',
+        status: 'pending',
+        buyer_notes: buyerNotes || null,
       })
       .select()
       .single();

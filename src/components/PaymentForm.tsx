@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSendTransaction, useWriteContract, useAccount } from 'wagmi';
 import { parseEther, parseUnits } from 'viem';
 import { Button } from './ui/Button';
+import { Textarea } from './ui/Textarea';
+import { Label } from './ui/Label';
 import { Service } from '../types/service';
 import toast from 'react-hot-toast';
 
@@ -30,6 +32,7 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [txHash, setTxHash] = useState<string>('');
   const [error, setError] = useState<Error | null>(null);
+  const [buyerNotes, setBuyerNotes] = useState('');
 
   // ETH Transaction
   const { 
@@ -146,6 +149,7 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
           amount: service.price,
           currency: service.currency,
           paymentTxHash: hash,
+          buyerNotes,
         }),
       });
 
@@ -287,11 +291,23 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Complete Your Booking</h2>
-        <div className="mb-4">
-          <p><strong>Service:</strong> {service.title}</p>
-          <p><strong>Provider:</strong> {service.userName}</p>
-          <p><strong>Price:</strong> {service.price} {service.currency}</p>
-          <p className="text-sm text-gray-500 break-all"><strong>To:</strong> {service.walletAddress}</p>
+        <div className="mb-4 space-y-2">
+          <div>
+            <p><strong>Service:</strong> {service.title}</p>
+            <p><strong>Provider:</strong> {service.userName}</p>
+            <p><strong>Price:</strong> {service.price} {service.currency}</p>
+            <p className="text-sm text-gray-500 break-all"><strong>To:</strong> {service.walletAddress}</p>
+          </div>
+          <div>
+            <Label htmlFor="buyer_notes">Notes for Seller (Optional)</Label>
+            <Textarea 
+              id="buyer_notes"
+              value={buyerNotes}
+              onChange={(e) => setBuyerNotes(e.target.value)}
+              placeholder="Provide any details the seller might need..."
+              className="mt-1"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end space-x-4">

@@ -3,9 +3,10 @@ import React from 'react';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   isLoading?: boolean;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
   asChild?: boolean;
+  fullWidth?: boolean;
 }
 
 export function Button({ 
@@ -15,6 +16,7 @@ export function Button({
   variant = 'primary',
   size = 'md',
   asChild = false,
+  fullWidth = false,
   ...props 
 }: ButtonProps) {
   const baseClasses = "btn";
@@ -23,7 +25,8 @@ export function Button({
     primary: "btn-primary",
     secondary: "btn-secondary", 
     outline: "btn-outline",
-    ghost: "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+    ghost: "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300",
+    destructive: "bg-red-600 hover:bg-red-700 text-white"
   };
   
   const sizeClasses = {
@@ -38,7 +41,7 @@ export function Button({
     baseClasses,
     variantClasses[variant],
     sizeClasses[size],
-    fullWidthClasses,
+    fullWidth ? fullWidthClasses : '',
     className
   ].join(' ');
 

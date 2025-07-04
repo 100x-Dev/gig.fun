@@ -1,42 +1,42 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '~/auth';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') as 'purchased' | 'ordered' | null;
-    
-    const cookieStore = await cookies();
-    const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-      throw sessionError;
-    }
-    if (!session?.user) {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.fid) {
       return NextResponse.json(
-        { error: 'Unauthorized' }, 
+        { error: 'Unauthorized' },
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Get the FID from the user's metadata
-    const fid = session.user.user_metadata?.fid;
-    if (!fid) {
-      return NextResponse.json(
-        { error: 'User FID not found' }, 
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+
+    const fid = session.user.fid;
 
     let query = supabase
       .from('purchases')
       .select(`
         *,
-        service:services(*, seller:profiles(*))
+        service:services!inner(
+          id,
+          title,
+          description,
+          price,
+          currency,
+          seller_fid: fid,
+          seller_username: user_name,
+          seller_pfp: user_pfp
+        )
       `);
 
     if (type === 'purchased') {
