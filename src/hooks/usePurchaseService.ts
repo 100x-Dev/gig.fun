@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase/server';
 
 export function usePurchaseService() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ export function usePurchaseService() {
   const handlePurchase = async (serviceId: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();

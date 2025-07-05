@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '~/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/Avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/Tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import ServiceCard from '~/components/ServiceCard';
 import { Service } from '~/types/service';
 
@@ -58,7 +58,7 @@ export default function ProfilePage() {
   }
 
   const { user } = session;
-  const username = user.username || `user-${user.fid?.slice(0, 6)}`;
+  const username = user.username || `user-${user.fid?.toString().slice(0, 6)}`;
   const initials = username.slice(0, 2).toUpperCase();
 
   return (
@@ -95,74 +95,17 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full md:w-2/3">
-          <Tabs defaultValue="services" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="services">My Services</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="services" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Services</CardTitle>
-                  <CardDescription>Manage your services and view analytics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : error ? (
-                    <div className="text-center py-8">
-                      <p className="text-red-500">{error}</p>
-                      <Button 
-                        className="mt-4" 
-                        onClick={() => window.location.reload()}
-                        variant="outline"
-                      >
-                        Retry
-                      </Button>
-                    </div>
-                  ) : services.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">You haven't created any services yet.</p>
-                      <Button 
-                        className="mt-4" 
-                        onClick={() => router.push('/services/new')}
-                      >
-                        Create a Service
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {services.map((service) => (
-                        <ServiceCard 
-                          key={service.id} 
-                          service={service} 
-                          currentUser={session?.user || null}
-                          showActions={true}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="activity" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Your recent interactions and updates</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">No recent activity to show.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>Your recent interactions and updates</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-gray-500">No recent activity to show.</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
