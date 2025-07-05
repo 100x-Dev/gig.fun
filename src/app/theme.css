@@ -1,0 +1,49 @@
+:root {
+  --primary: #3C219A;
+  --primary-light: #5A3BC4;
+  --primary-dark: #2A1670;
+  --secondary: #FF7E67;
+  --accent: #61C9A8;
+  --background: #F8F9FA;
+  --card-bg: #FFFFFF;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-light: #999999;
+  --border-radius: 16px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode colors */
+.dark {
+  --primary: #5A3BC4;
+  --primary-light: #7A5BE4;
+  --primary-dark: #3C219A;
+  --secondary: #FF9B8A;
+  --accent: #7EEAC9;
+  --background: #121212;
+  --card-bg: #1E1E1E;
+  --text-primary: #F0F0F0;
+  --text-secondary: #BBBBBB;
+  --text-light: #777777;
+}
+
+/* Custom utility classes */
+.text-primary-color {
+  color: var(--primary);
+}
+
+.bg-primary-color {
+  background-color: var(--primary);
+}
+
+.border-primary-color {
+  border-color: var(--primary);
+}
+
+.rounded-soft {
+  border-radius: var(--border-radius);
+}
+
+.shadow-soft {
+  box-shadow: var(--shadow);
+}

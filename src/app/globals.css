@@ -25,14 +25,15 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base variables are defined in theme.css */
+  --background: var(--background, #ffffff);
+  --foreground: var(--text-primary, #171717);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--background, #0a0a0a);
+    --foreground: var(--text-primary, #ededed);
   }
 }
 

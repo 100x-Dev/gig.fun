@@ -24,15 +24,8 @@ interface MiniAppContextType {
   // Add other context properties as needed
 }
 
-interface ServicesPageProps {
-  initialServices?: Service[];
-}
-
-interface ServicesPageProps {
-  initialServices?: Service[];
-}
-
-export default function ServicesPage({ initialServices = [] }: ServicesPageProps) {
+// Remove duplicate interface and simplify props
+export default function ServicesPage() {
   const [myServices, setMyServices] = useState<Service[]>([]);
   const [otherServices, setOtherServices] = useState<Service[]>([]);
   
@@ -140,23 +133,32 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Services</h1>
+        <h1 className="text-3xl font-bold text-[var(--primary)]">Services</h1>
         <div className="w-full md:w-auto flex items-center gap-4">
             <div className="relative flex-1 md:max-w-md">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <div className="absolute inset-y-0 right-0 pr-10 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-[#3C219A]" />
                 </div>
-                <Input
+                <input
                 type="text"
                 placeholder="Search services..."
-                className="pl-10 pr-10 w-full"
+                className="pl-3 pr-10 w-full rounded-md border border-[#3C219A] text-[#3C219A] focus:outline-none focus:ring-2 focus:ring-[#3C219A] transition-all duration-200"
+                style={{ 
+                  color: '#3C219A', 
+                  borderColor: '#3C219A',
+                  backgroundColor: 'white',
+                  padding: '0.5rem 0.75rem',
+                  height: '2.5rem',
+                  width: '100%'
+                }}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 />
                 {searchQuery && (
                 <button
                     onClick={clearSearch}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#3C219A] hover:text-[#5C41BA]"
+                    style={{ color: '#3C219A' }}
                     aria-label="Clear search"
                 >
                     <X className="h-5 w-5" />
@@ -164,9 +166,13 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
                 )}
             </div>
             {user && (
-                <Button onClick={handleCreateNew}>
+                <button 
+                    onClick={handleCreateNew}
+                    className="bg-white text-[#3C219A] border border-[#3C219A] hover:bg-[#3C219A] hover:text-white transition-all duration-200 px-4 py-2 rounded-md"
+                    style={{ borderColor: '#3C219A', color: '#3C219A' }}
+                >
                     Create Service
-                </Button>
+                </button>
             )}
         </div>
       </div>
@@ -187,7 +193,7 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
               d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
+          <h3 className="mt-2 text-sm font-medium text-[var(--primary)]">
             {searchQuery ? 'No matching services found' : 'No services available'}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
@@ -205,7 +211,7 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
         <div className="space-y-12">
             {filteredOtherServices.length > 0 && (
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Browse All Services</h2>
+                    <h2 className="text-2xl font-bold text-[var(--primary)] mb-6">Browse All Services</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredOtherServices.map((service) => (
                             <ServiceCard 
@@ -220,7 +226,7 @@ export default function ServicesPage({ initialServices = [] }: ServicesPageProps
             
             {filteredMyServices.length > 0 && (
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Services</h2>
+                    <h2 className="text-2xl font-bold text-[var(--primary)] mb-6">Your Services</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredMyServices.map((service) => (
                             <ServiceCard 

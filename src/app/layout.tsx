@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from 'next/font/google';
+import { Jua } from 'next/font/google';
 
 import { getSession } from "~/auth"
 import "~/app/globals.css";
+import "~/app/theme.css";
 import { Providers } from "~/app/providers";
 import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
 import BottomNav from "~/components/BottomNav";
 import { FarcasterFrameInitializer } from '~/components/FarcasterFrameInitializer';
 
-const inter = Inter({ subsets: ['latin'] });
+const jua = Jua({ weight: '400', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: APP_NAME,
@@ -24,7 +25,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={jua.className}>
         <Providers session={session}>
           <div className="pb-16">
             {children}

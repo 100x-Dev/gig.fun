@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ShoppingCart, AlertTriangle } from 'lucide-react';
-import { Dialog } from './ui/Dialog';
+import { CustomDialog } from './ui/CustomDialog';
 import { usePurchaseService } from '~/hooks/usePurchaseService';
 
 interface PurchaseButtonProps {
@@ -119,8 +119,8 @@ export function PurchaseButton({
         )}
       </Button>
       
-      <Dialog
-        isOpen={showDuplicateDialog}
+      <CustomDialog
+        open={showDuplicateDialog}
         onClose={() => setShowDuplicateDialog(false)}
         title="Already Purchased"
         confirmText="View Purchases"
@@ -137,7 +137,7 @@ export function PurchaseButton({
             It looks like you've already purchased this service. You can view your purchases in your account.
           </p>
         </div>
-      </Dialog>
+      </CustomDialog>
     </>
   );
 }

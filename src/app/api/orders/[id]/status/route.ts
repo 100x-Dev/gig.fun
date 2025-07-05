@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '~/auth';
+import { authOptions } from '../../../../../auth';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -10,12 +10,13 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const ALLOWED_STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'] as const;
 type OrderStatus = (typeof ALLOWED_STATUSES)[number];
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request) {
   try {
-    const { id } = params;
+    // Extract ID from URL path
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const id = pathParts[pathParts.length - 2]; // Get the ID from the URL path
+    
     const session = await getServerSession(authOptions);
     if (!session?.user?.fid) {
       return NextResponse.json(

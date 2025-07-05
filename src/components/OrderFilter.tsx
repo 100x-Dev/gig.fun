@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from './ui/button';
+import { Button } from './ui/Button';
 
 type FilterType = 'purchased' | 'sold';
 
@@ -21,16 +21,15 @@ export function OrderFilter({ onFilterChange, initialFilter = 'purchased' }: Ord
   return (
     <div className="flex space-x-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
       <Button
-        variant={activeFilter === 'purchased' ? 'default' : 'ghost'}
+        variant={activeFilter === 'purchased' ? 'primary' : 'ghost'}
         onClick={() => handleFilterClick('purchased')}
-        className={`flex-1 ${activeFilter === 'purchased' ? 'bg-primary' : ''}`}
+        className="mr-2"
       >
         Purchased
       </Button>
       <Button
-        variant={activeFilter === 'sold' ? 'default' : 'ghost'}
+        variant={activeFilter === 'sold' ? 'primary' : 'ghost'}
         onClick={() => handleFilterClick('sold')}
-        className={`flex-1 ${activeFilter === 'sold' ? 'bg-primary' : ''}`}
       >
         Sold
       </Button>

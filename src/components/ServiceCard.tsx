@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from './ui/Button';
-import PaymentForm from './PaymentForm';
+import PaymentFormNew from './PaymentFormNew';
 import { Service } from '~/types/service';
 import { CurrentUser } from '~/types/user';
 
@@ -78,21 +78,22 @@ export default function ServiceCard({ service, currentUser, showActions = false,
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300">
+    <>
+      <div className="bg-[var(--card-bg)] rounded-soft shadow-soft overflow-hidden border-0 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       <div className="p-6">
         {/* Service Title and Price */}
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-black">
             {service.title}
           </h3>
-          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 whitespace-nowrap">
+          <span className="bg-[var(--primary-light)/10] text-black text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap">
             {service.currency} {service.price.toFixed(2)}
           </span>
         </div>
 
         {/* Service Description */}
         <div className="mb-4">
-          <p className={`text-gray-600 dark:text-gray-300 text-sm ${isExpanded ? '' : 'line-clamp-3'}`}>
+          <p className={`text-black text-sm ${isExpanded ? '' : 'line-clamp-3'}`}>
             {service.description}
           </p>
 
@@ -100,27 +101,27 @@ export default function ServiceCard({ service, currentUser, showActions = false,
           {isExpanded && (
             <div className="mt-4 space-y-3">
               <div className="flex items-center text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Category:</span>
-                <span className="text-gray-600 dark:text-gray-400">{service.category}</span>
+                <span className="font-medium text-black w-24">Category:</span>
+                <span className="text-black">{service.category}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Delivery:</span>
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="font-medium text-black w-24">Delivery:</span>
+                <span className="text-black">
                   {service.deliveryDays} day{service.deliveryDays !== 1 ? 's' : ''}
                 </span>
               </div>
               {service.userName && (
                 <div className="flex items-center text-sm">
-                  <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Provider:</span>
+                  <span className="font-medium text-black w-24">Provider:</span>
                   <div className="flex items-center">
                     {service.userPfp && (
                       <img
                         src={service.userPfp}
                         alt={service.userName}
-                        className="w-6 h-6 rounded-full mr-2"
+                        className="w-6 h-6 rounded-full mr-2 border border-[var(--primary-light)]"
                       />
                     )}
-                    <span className="text-gray-600 dark:text-gray-400">{service.userName}</span>
+                    <span className="text-black">{service.userName}</span>
                   </div>
                 </div>
               )}
@@ -133,7 +134,7 @@ export default function ServiceCard({ service, currentUser, showActions = false,
           {service.tags.map((tag, index) => (
             <span
               key={index}
-              className="px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded-full dark:bg-gray-700 dark:text-gray-300"
+              className="px-2.5 py-0.5 text-xs font-medium bg-[var(--primary-light)/10] text-black rounded-full"
             >
               {tag}
             </span>
@@ -141,10 +142,10 @@ export default function ServiceCard({ service, currentUser, showActions = false,
         </div>
 
         {/* Card Footer with actions */}
-        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-[var(--border-color)]">
           <button
             onClick={toggleExpand}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-black hover:underline transition-all duration-200"
           >
             {isExpanded ? 'Show Less' : 'Show More'}
           </button>
@@ -155,7 +156,7 @@ export default function ServiceCard({ service, currentUser, showActions = false,
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700"
+                  className="text-[var(--text-secondary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)/10]"
                   onClick={handleEdit}
                   title="Edit service"
                 >
@@ -165,7 +166,7 @@ export default function ServiceCard({ service, currentUser, showActions = false,
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700"
+                    className="text-[var(--text-secondary)] hover:text-red-600 hover:bg-red-50"
                     onClick={handleDelete}
                     title="Deactivate service"
                     disabled={isDeleting}
@@ -177,7 +178,7 @@ export default function ServiceCard({ service, currentUser, showActions = false,
                     )}
                   </Button>
                   {error && (
-                    <div className="absolute left-full ml-2 mt-1 w-48 rounded bg-red-50 p-2 text-xs text-red-600 shadow-lg">
+                    <div className="absolute left-full ml-2 mt-1 w-48 rounded-soft bg-red-50 p-2 text-xs text-red-600 shadow-soft">
                       {error}
                     </div>
                   )}
@@ -188,7 +189,7 @@ export default function ServiceCard({ service, currentUser, showActions = false,
             {currentUser && !isServiceCreator && (
               <Button
                 onClick={handleBookNow}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold py-2 px-4 rounded-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
               >
                 Book Now
               </Button>
@@ -197,10 +198,12 @@ export default function ServiceCard({ service, currentUser, showActions = false,
         </div>
       </div>
 
+      </div>
+
       {/* Payment Form Modal */}
       {showBookingForm && (
-        <PaymentForm service={service} onClose={handleCloseBookingForm} />
+        <PaymentFormNew service={service} onClose={handleCloseBookingForm} />
       )}
-    </div>
+    </>
   );
 }

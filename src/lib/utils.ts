@@ -53,7 +53,7 @@ export function cn(...inputs: ClassValue[]) {
 export function getSecretEnvVars() {
   const seedPhrase = process.env.SEED_PHRASE;
   const fid = process.env.FID;
-  
+
   if (!seedPhrase || !fid) {
     return null;
   }
@@ -69,7 +69,7 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
       url: ogImageUrl ?? APP_OG_IMAGE_URL,
       aspectRatio: "1.91:1"
     },
-    
+
     // Frame metadata
     frame: {
       buttons: [
@@ -81,7 +81,7 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
       postUrl: `${APP_URL}/api/frame`,
       refreshPeriod: 60
     },
-    
+
     // App metadata
     app: {
       id: APP_NAME.toLowerCase().replace(/\s+/g, '-'),
@@ -97,7 +97,7 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
       url: APP_URL,
       webhookUrl: APP_WEBHOOK_URL
     },
-    
+
     // Additional metadata for better discovery
     openGraph: {
       title: APP_NAME,
@@ -114,7 +114,7 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
 export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
   // Use process.env directly as this will be called from the server
   const env = process.env;
-  
+
   // First check for MINI_APP_METADATA in .env and use that if it exists
   if (env.MINI_APP_METADATA) {
     try {
@@ -138,19 +138,19 @@ export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
 
   // Check for account association in environment variables
   let accountAssociation;
-  
+
   // First try to get from environment variables
   if (process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER &&
-      process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD &&
-      process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE) {
-    
+    process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD &&
+    process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE) {
+
     accountAssociation = {
       header: process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER,
       payload: process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD,
       signature: process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE
     };
     console.log('Using account association from environment variables');
-  } 
+  }
   // Fallback to generating from seed phrase if available
   else {
     const secretEnvVars = getSecretEnvVars();
@@ -170,7 +170,7 @@ export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
         const payload = { domain };
         const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
 
-        const signature = await account.signMessage({ 
+        const signature = await account.signMessage({
           message: `${encodedHeader}.${encodedPayload}`
         });
         const encodedSignature = Buffer.from(signature, 'utf-8').toString('base64url');
@@ -195,13 +195,13 @@ export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
   const ensureHttpsUrl = (path: string): string => {
     if (!path) return '';
     // Always use the ngrok domain for all URLs
-    const ngrokDomain = '4b01-103-219-47-212.ngrok-free.app';
+    const domain = 'gigsfun.vercel.app';
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `https://${ngrokDomain}/${cleanPath}`.replace(/\/+$/, '');
+    return `https://${domain}/${cleanPath}`.replace(/\/+$/, '');
   };
 
   // Base URL using ngrok domain
-  const baseUrl = 'https://4b01-103-219-47-212.ngrok-free.app';
+  const baseUrl = 'https://gigsfun.vercel.app';
 
   // Build the manifest object with properly formatted URLs
   const manifest: MiniAppManifest = {

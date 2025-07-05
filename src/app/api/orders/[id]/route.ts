@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '~/auth';
+import { authOptions } from '../../../../auth';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -28,12 +28,13 @@ async function verifyOrderOwnership(orderId: string, fid: string | number, isSel
 }
 
 // Handle seller note updates
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request) {
   try {
-    const { id } = params;
+    // Extract ID from URL path
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const id = pathParts[pathParts.length - 1]; // Get the ID from the URL path
+    
     const session = await getServerSession(authOptions);
     if (!session?.user?.fid) {
       return NextResponse.json(
@@ -86,12 +87,13 @@ export async function POST(
 }
 
 // Handle status updates
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request) {
   try {
-    const { id } = params;
+    // Extract ID from URL path
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const id = pathParts[pathParts.length - 1]; // Get the ID from the URL path
+    
     const session = await getServerSession(authOptions);
     if (!session?.user?.fid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

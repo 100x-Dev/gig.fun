@@ -9,7 +9,7 @@ declare module "next-auth" {
     username?: string;
     displayName?: string;
     pfpUrl?: string;
-    walletAddress?: string | null;
+    walletAddress: string;
   }
 
   interface Session {
@@ -23,7 +23,7 @@ declare module "next-auth/jwt" {
     username?: string;
     displayName?: string;
     pfpUrl?: string;
-    walletAddress?: string | null;
+    walletAddress: string;
   }
 }
 
@@ -56,48 +56,53 @@ export const authOptions: AuthOptions = {
         walletAddress: { label: "Wallet Address", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials) {
-          console.log('No credentials provided to authorize');
-          return null;
-        }
-        
-        // Type assertion for credentials
-        const creds = credentials as {
-          fid: string;
-          username?: string;
-          pfpUrl?: string;
-          walletAddress?: string;
-        };
-        
-        console.log('Authorize credentials received:', {
-          fid: creds.fid,
-          username: creds.username,
-          hasPfpUrl: !!creds.pfpUrl,
-          walletAddress: creds.walletAddress || 'Not provided'
-        });
-        
-        if (creds.fid) {
-          const user = {
-            id: creds.fid,
-            fid: Number(creds.fid),
-            username: creds.username || `user-${creds.fid}`,
-            displayName: creds.username || `User ${creds.fid}`,
-            pfpUrl: creds.pfpUrl,
-            walletAddress: creds.walletAddress || null,
+        try {
+          if (!credentials) {
+            console.log('No credentials provided to authorize');
+            return null;
+          }
+          
+          // Type assertion for credentials
+          const creds = credentials as {
+            fid: string;
+            username?: string;
+            pfpUrl?: string;
+            walletAddress?: string;
           };
           
-          console.log('Creating user session with:', {
-            fid: user.fid,
-            username: user.username,
-            hasPfpUrl: !!user.pfpUrl,
-            walletAddress: user.walletAddress || 'No wallet address'
+          console.log('Authorize credentials received:', {
+            fid: creds.fid,
+            username: creds.username,
+            hasPfpUrl: !!creds.pfpUrl,
+            walletAddress: creds.walletAddress || 'Not provided'
           });
           
-          return user;
+          if (creds.fid) {
+            const user = {
+              id: creds.fid,
+              fid: Number(creds.fid),
+              username: creds.username || `user-${creds.fid}`,
+              displayName: creds.username || `User ${creds.fid}`,
+              pfpUrl: creds.pfpUrl,
+              walletAddress: creds.walletAddress || '',
+            };
+            
+            console.log('Creating user session with:', {
+              fid: user.fid,
+              username: user.username,
+              hasPfpUrl: !!user.pfpUrl,
+              walletAddress: user.walletAddress || 'No wallet address'
+            });
+            
+            return user;
+          }
+          
+          console.log('No FID found in credentials, returning null');
+          return null;
+        } catch (error) {
+          console.error('Error in authorize function:', error);
+          return null; // Ensure null is returned on error
         }
-        
-        console.log('No FID found in credentials, returning null');
-        return null;
       },
     }),
   ],
@@ -109,37 +114,26 @@ export const authOptions: AuthOptions = {
         token.username = user.username;
         token.displayName = user.displayName;
         token.pfpUrl = user.pfpUrl;
-        token.walletAddress = user.walletAddress || null;
+        token.walletAddress = user.walletAddress;
         console.log('JWT - Initial sign in with wallet address:', token.walletAddress);
       }
-      
+
       // Update token with session data if triggered by update()
-      if (trigger === 'update' && session) {
-        // Type assertion to handle the session update
-        const updatedSession = session as { user?: { walletAddress?: string | null } };
-        if (updatedSession.user?.walletAddress !== undefined) {
-          token.walletAddress = updatedSession.user.walletAddress;
-        }
+      if (trigger === 'update' && session?.user) {
+        token.walletAddress = session.user.walletAddress;
+        console.log('JWT - Updated wallet address:', token.walletAddress);
       }
-      
+
       return token;
     },
     async session({ session, token }) {
-      // Add custom properties to the session
-      if (token) {
-        session.user = {
-          id: token.sub || '',
-          fid: token.fid,
-          username: token.username,
-          displayName: token.displayName,
-          pfpUrl: token.pfpUrl,
-          walletAddress: token.walletAddress || null
-        };
-        console.log('Session - User data:', {
-          id: session.user.id,
-          fid: session.user.fid,
-          walletAddress: session.user.walletAddress
-        });
+      if (session.user) {
+        session.user.id = token.sub || token.fid.toString();
+        session.user.fid = token.fid;
+        session.user.username = token.username;
+        session.user.displayName = token.displayName;
+        session.user.pfpUrl = token.pfpUrl;
+        session.user.walletAddress = token.walletAddress;
       }
       return session;
     },

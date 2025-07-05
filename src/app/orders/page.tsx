@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { sdk } from '@farcaster/miniapp-sdk';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '~/components/ui/Button';
@@ -10,6 +11,19 @@ import { Textarea } from '~/components/ui/Textarea';
 import { Label } from '~/components/ui/Label';
 import { ExternalLink, Loader2, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+
+// Initialize Farcaster SDK
+const initFarcasterSDK = async () => {
+  try {
+    // After the app is fully loaded and ready to display
+    await sdk.actions.ready();
+    console.log('Farcaster SDK initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Error initializing Farcaster SDK:', error);
+    return false;
+  }
+};
 
 type Order = {
   id: string;
@@ -64,6 +78,30 @@ export default function OrdersPage() {
   const [isNoteSaving, setIsNoteSaving] = useState(false);
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [isFarcasterInitialized, setIsFarcasterInitialized] = useState(false);
+
+  // Initialize Farcaster SDK
+  useEffect(() => {
+    const initSDK = async () => {
+      // Only initialize once when the component mounts
+      if (!isFarcasterInitialized) {
+        const success = await initFarcasterSDK();
+        setIsFarcasterInitialized(success);
+        
+        if (!success) {
+          console.warn('Farcaster SDK initialization failed, app may not display properly in Farcaster clients');
+        }
+      }
+    };
+    
+    // Call immediately when component mounts
+    initSDK();
+    
+    // Cleanup function
+    return () => {
+      console.log('Component unmounting, Farcaster SDK state reset');
+    };
+  }, [isFarcasterInitialized]);
 
   // Fetch orders based on the current view
   useEffect(() => {
@@ -209,29 +247,30 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">
-        {view === 'purchased' ? 'Gigs Purchased' : 'Gigs Ordered'}
-      </h1>
+    <div className="bg-[var(--background)] min-h-screen">
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl text-[var(--primary)] mb-6 text-center">
+          {view === 'purchased' ? 'Gigs Purchased' : 'Gigs Ordered'}
+        </h1>
       
-      {/* Toggle View */}
-      <div className="flex mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        {/* Toggle View */}
+      <div className="flex mb-8 bg-[var(--card-bg)] rounded-soft shadow-soft p-2 max-w-md mx-auto">
         <button
           onClick={() => setView('purchased')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
+          className={`flex-1 py-3 px-4 rounded-soft text-sm font-medium transition-all duration-200 ${
             view === 'purchased'
-              ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-[var(--primary)] text-white shadow-md transform scale-105'
+              : 'text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:text-white'
           }`}
         >
           Gigs Purchased
         </button>
         <button
           onClick={() => setView('ordered')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
+          className={`flex-1 py-3 px-4 rounded-soft text-sm font-medium transition-all duration-200 ${
             view === 'ordered'
-              ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-[var(--primary)] text-white shadow-md transform scale-105'
+              : 'text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:text-white'
           }`}
         >
           Gigs Ordered
@@ -240,35 +279,42 @@ export default function OrdersPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-md mb-6">
-          {error}
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-6 py-4 rounded-soft shadow-soft mb-6 max-w-lg mx-auto">
+          <p className="flex items-center">
+            <span className="mr-2">⚠️</span>
+            {error}
+          </p>
         </div>
       )}
 
       {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
         </div>
       )}
 
       {/* Orders List */}
       {!loading && orders.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">
+        <div className="text-center py-16 bg-[var(--card-bg)] rounded-soft shadow-soft max-w-md mx-auto p-8">
+          <div className="text-5xl mb-4">🔍</div>
+          <p className="text-[var(--text-secondary)] mb-6">
             {view === 'purchased'
               ? "You haven't purchased any gigs yet."
               : "You don't have any orders yet."}
           </p>
-          <Button className="mt-4" onClick={() => router.push('/services')}>
+          <Button 
+            className="mt-4 bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white px-8 py-3 rounded-soft transition-all duration-200" 
+            onClick={() => router.push('/services')}
+          >
             Browse Services
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {orders.map((order) => (
-            <Card key={order.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
+            <Card key={order.id} className="overflow-hidden rounded-soft shadow-soft border-0 bg-[var(--card-bg)] transform transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+              <CardHeader className="pb-2 pt-6 px-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">
@@ -284,20 +330,20 @@ export default function OrdersPage() {
                     {view === 'ordered' && (
                       <div className="mt-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Note:</span>
+                          <span className="text-sm font-medium text-[var(--primary)]">Note:</span>
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
                               setCurrentNote(order.seller_notes || '');
                               setIsNoteDialogOpen(true);
                             }}
-                            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            className="text-sm text-[var(--primary)] hover:text-[var(--primary-light)] transition-all duration-200"
                           >
                             {order.seller_notes ? 'Edit Note' : 'Add Note'}
                           </button>
                         </div>
                         {order.seller_notes && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-sm text-[var(--text-secondary)] mt-1">
                             {order.seller_notes}
                           </p>
                         )}
@@ -349,15 +395,15 @@ export default function OrdersPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-2">
-                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+              <CardContent className="pt-2 px-6 pb-6">
+                <p className="text-sm text-black line-clamp-2">
                   {order.service.description}
                 </p>
-                <div className="mt-3 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                  <span>
+                <div className="mt-5 flex items-center justify-between text-sm">
+                  <span className="text-black">
                     Ordered on {new Date(order.created_at).toLocaleDateString()}
                   </span>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-3 mt-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -485,6 +531,7 @@ export default function OrdersPage() {
           </Dialog>
         </>
       )}
+    </div>
     </div>
   );
 }

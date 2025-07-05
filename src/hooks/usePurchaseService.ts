@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { supabase } from '~/lib/supabase/client';
 
 export function usePurchaseService() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasPurchased, setHasPurchased] = useState<boolean>(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const checkExistingPurchase = async (serviceId: string) => {
     try {

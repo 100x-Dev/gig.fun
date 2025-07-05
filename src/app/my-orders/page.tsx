@@ -1,6 +1,4 @@
 'use client';
-
-'use client';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -59,25 +57,25 @@ export default function MyOrdersPage() {
     if (status === 'authenticated' && session?.user?.fid) {
       fetchOrders();
     }
-  }, [status, session]);
+  }, [status, session, router]);
 
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await fetch('/api/orders?type=ordered');
-      
+
       if (!response.ok) {
         let errorMsg = `HTTP error! status: ${response.status}`;
         try {
-            const errorData = await response.json();
-            errorMsg = errorData.error || errorMsg;
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
         } catch (e) {
-            // response is not json, or other error
+          // response is not json, or other error
         }
         throw new Error(errorMsg);
       }
-      
+
       const data = await response.json();
       setOrders(data);
     } catch (err: any) {
@@ -91,13 +89,13 @@ export default function MyOrdersPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4" />;
       case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4" />;
       case 'disputed':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
+        return <AlertCircle className="h-4 w-4" />;
       case 'cancelled':
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+        return <X className="h-4 w-4" />;
       default:
         return null;
     }
@@ -120,7 +118,7 @@ export default function MyOrdersPage() {
       const response = await fetch(`/api/orders/${selectedOrder.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status,
           seller_notes: sellerNotes
         }),
@@ -150,8 +148,8 @@ export default function MyOrdersPage() {
       const response = await fetch(`/api/orders/${selectedOrder.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          seller_notes: sellerNotes 
+        body: JSON.stringify({
+          seller_notes: sellerNotes
         }),
       });
 
@@ -174,8 +172,8 @@ export default function MyOrdersPage() {
   if (status === 'loading' || isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-        <p className="mt-4 text-gray-600">Loading your orders...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+        <p className="mt-4 text-[var(--text-secondary)]">Loading your orders...</p>
       </div>
     );
   }
@@ -186,9 +184,12 @@ export default function MyOrdersPage() {
         <div className="text-red-500 mb-4">
           <AlertCircle className="h-12 w-12 mx-auto" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Something went wrong</h2>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <Button onClick={fetchOrders}>
+        <h2 className="text-xl font-semibold text-[var(--primary)] mb-2">Something went wrong</h2>
+        <p className="text-[var(--text-secondary)] mb-6">{error}</p>
+        <Button
+          className="bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white transition-all duration-200"
+          onClick={fetchOrders}
+        >
           Try Again
         </Button>
       </div>
@@ -199,10 +200,10 @@ export default function MyOrdersPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-          <p className="text-gray-600">Manage orders for your services</p>
+          <h1 className="text-3xl font-bold text-[var(--primary)]">My Orders</h1>
+          <p className="text-[var(--text-secondary)]">Manage orders for your services</p>
         </div>
-        <Button variant="outline" asChild>
+        <Button className="bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white transition-all duration-200" asChild>
           <Link href="/services/new">
             Create New Service <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -210,16 +211,16 @@ export default function MyOrdersPage() {
       </div>
 
       {orders.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
+        <div className="text-center py-16 border-2 border-dashed rounded-soft bg-[var(--card-bg)] shadow-soft">
+          <div className="mx-auto h-12 w-12 text-[var(--primary)] mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
-          <p className="mt-1 text-sm text-gray-500">When someone purchases your service, it will appear here.</p>
+          <h3 className="text-lg font-medium text-[var(--text-primary)]">No orders yet</h3>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">When someone purchases your service, it will appear here.</p>
           <div className="mt-6">
-            <Button asChild>
+            <Button className="bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white transition-all duration-200" asChild>
               <Link href="/services/new">Create a Service</Link>
             </Button>
           </div>
@@ -227,12 +228,12 @@ export default function MyOrdersPage() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <Card key={order.id} className="hover:shadow-md transition-shadow">
+            <Card key={order.id} className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 rounded-soft shadow-soft border-0 bg-[var(--card-bg)]">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{order.service.title}</CardTitle>
-                    <CardDescription className="mt-1">
+                    <CardTitle className="text-lg text-[var(--primary)]">{order.service.title}</CardTitle>
+                    <CardDescription className="mt-1 text-[var(--text-secondary)]">
                       Ordered on {new Date(order.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -240,7 +241,14 @@ export default function MyOrdersPage() {
                       })}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-sm">
+                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-sm ${order.status === 'completed'
+                      ? 'bg-emerald-400 dark:bg-emerald-500 shadow-emerald-200 dark:shadow-emerald-700/30'
+                      : order.status === 'cancelled'
+                        ? 'bg-rose-500'
+                        : order.status === 'disputed'
+                          ? 'bg-amber-500'
+                          : 'bg-indigo-500'
+                    }`}>
                     {getStatusIcon(order.status)}
                     <span className="capitalize">{getStatusText(order.status)}</span>
                   </div>
@@ -249,88 +257,121 @@ export default function MyOrdersPage() {
               <CardContent className="pb-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-500">Amount</p>
-                    <p className="font-medium">
-                      {order.currency === 'USDC' || order.currency === 'ETH' 
+                    <p className="text-[var(--text-secondary)]">Amount</p>
+                    <p className="font-medium text-[var(--text-primary)]">
+                      {order.currency === 'USDC' || order.currency === 'ETH'
                         ? `${order.amount} ${order.currency}`
                         : new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: order.currency || 'USD',
-                          }).format(order.amount)
+                          style: 'currency',
+                          currency: order.currency || 'USD',
+                        }).format(order.amount)
                       }
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Buyer</p>
-                    <p className="font-medium">
+                    <p className="text-[var(--text-secondary)]">Buyer</p>
+                    <p className="font-medium text-[var(--text-primary)]">
                       {`User ${order.buyer_fid}`}
                     </p>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button variant="secondary" className="w-full" onClick={() => handleManageClick(order)}>
+              <CardFooter className="pt-0">
+                <Button
+                  className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all duration-200"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleManageClick(order)}
+                >
                   Manage Order
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
-      )}\n
-      {selectedOrder && (
-        <Dialog
-          isOpen={!!selectedOrder}
-          onClose={() => setSelectedOrder(null)}
-          title="Manage Order"
-          footer={
-            <div className="flex w-full justify-between items-center">
-              <Button
-                variant="secondary"
-                onClick={handleSaveNotes}
-                isLoading={isSavingNotes}
-                disabled={isUpdating || isSavingNotes}
-              >
-                Save Notes
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" onClick={() => setSelectedOrder(null)} disabled={isUpdating || isSavingNotes}>
-                  Close
-                </Button>
+      )}
 
-                <Button
-                  onClick={() => handleUpdateOrder('completed')}
-                  isLoading={isUpdating}
-                  disabled={isUpdating || isSavingNotes || selectedOrder?.status === 'completed'}
-                >
-                  Complete Order
-                </Button>
-              </div>
-            </div>
-          }
-        >
-          {selectedOrder && (
+      {selectedOrder && (
+        <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-[var(--primary)] mb-4">Manage Order</h2>
+
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold">{selectedOrder.service.title}</h3>
-                <p className="text-sm text-gray-500">Buyer: {selectedOrder.buyer_fid}</p>
+                <h3 className="font-semibold text-[var(--text-primary)]">{selectedOrder.service.title}</h3>
+                <p className="text-sm text-[var(--text-secondary)]">Buyer: {selectedOrder.buyer_fid}</p>
               </div>
+
               <div>
-                <Label htmlFor="buyer_notes">Buyer's Notes</Label>
-                <Textarea id="buyer_notes" value={selectedOrder.buyer_notes || ''} readOnly />
+                <Label htmlFor="buyer_notes" className="text-[var(--text-primary)]">Buyer's Notes</Label>
+                <Textarea
+                  id="buyer_notes"
+                  value={selectedOrder.buyer_notes || ''}
+                  readOnly
+                  className="border-[var(--primary-light)] focus:border-[var(--primary)]"
+                />
               </div>
+
               <div>
-                <Label htmlFor="seller_notes">Your Notes (for buyer)</Label>
-                <Textarea 
-                  id="seller_notes" 
+                <Label htmlFor="seller_notes" className="text-[var(--text-primary)]">Your Notes (for buyer)</Label>
+                <Textarea
+                  id="seller_notes"
                   value={sellerNotes}
                   onChange={(e) => setSellerNotes(e.target.value)}
                   placeholder="Add any notes for the buyer..."
+                  className="border-[var(--primary-light)] focus:border-[var(--primary)]"
                 />
               </div>
+
+              <div className="flex justify-between items-center pt-4">
+                <Button
+                  className="bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white transition-all duration-200"
+                  onClick={handleSaveNotes}
+                  disabled={isUpdating || isSavingNotes}
+                >
+                  {isSavingNotes ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Notes'
+                  )}
+                </Button>
+
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedOrder(null)}
+                    disabled={isUpdating || isSavingNotes}
+                    className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary-light)] hover:text-white"
+                  >
+                    Close
+                  </Button>
+
+                  <Button
+                    onClick={() => handleUpdateOrder('completed')}
+                    disabled={isUpdating || isSavingNotes || selectedOrder?.status === 'completed'}
+                    className="bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
+                  >
+                    {isUpdating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      'Complete Order'
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
         </Dialog>
       )}
     </div>
   );
 }
+
+
+

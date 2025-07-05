@@ -13,7 +13,7 @@ export default function ProfilePage() {
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -32,12 +32,12 @@ export default function ProfilePage() {
       <div className="flex justify-center">
         <div className="w-full max-w-md">
           <Card className="overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-24"></div>
+            <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] h-24"></div>
             <div className="px-6 pb-6 -mt-12">
               <div className="flex justify-center">
                 <Avatar className="h-24 w-24 border-4 border-white dark:border-gray-800">
                   <AvatarImage src={user.pfpUrl} alt={username} />
-                  <AvatarFallback className="text-2xl font-medium bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  <AvatarFallback className="text-2xl font-medium bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -53,7 +53,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="px-6 pb-6">
-              <Button className="w-full" variant="outline">
+              <Button className="w-full bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white transition-all duration-200">
                 Edit Profile
               </Button>
             </div>

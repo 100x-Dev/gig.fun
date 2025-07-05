@@ -288,74 +288,89 @@ export default function PaymentForm({ service, onClose }: PaymentFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Complete Your Booking</h2>
-        <div className="mb-4 space-y-2">
-          <div>
-            <p><strong>Service:</strong> {service.title}</p>
-            <p><strong>Provider:</strong> {service.userName}</p>
-            <p><strong>Price:</strong> {service.price} {service.currency}</p>
-            <p className="text-sm text-gray-500 break-all"><strong>To:</strong> {service.walletAddress}</p>
-          </div>
-          <div>
-            <Label htmlFor="buyer_notes">Notes for Seller (Optional)</Label>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-white w-full max-w-md mx-4 rounded-lg shadow-lg" style={{ transform: 'none', transition: 'none' }}>
+        <h2 className="text-xl font-bold p-6 pb-4 text-indigo-700">Complete Your Booking</h2>
+        
+        <div className="px-6 pb-4">
+          <p className="font-medium text-lg mb-4">{service.title}</p>
+          <p className="text-gray-600 mb-2"><span className="font-medium">Provider:</span> {service.userName}</p>
+          <p className="text-gray-600 mb-2"><span className="font-medium">Price:</span> {service.price} {service.currency}</p>
+          <p className="text-sm text-gray-600 break-all mb-4"><span className="font-medium">To:</span> {service.walletAddress}</p>
+          
+          <div className="mb-6">
+            <Label htmlFor="buyer_notes" className="block mb-2">Notes for Seller (Optional)</Label>
             <Textarea 
               id="buyer_notes"
               value={buyerNotes}
               onChange={(e) => setBuyerNotes(e.target.value)}
               placeholder="Provide any details the seller might need..."
-              className="mt-1"
+              className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>
+        <div className="flex flex-col gap-3 px-6 pb-6">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={isPending}
+            className="w-full border border-indigo-700 text-indigo-700 py-2 rounded-md"
+          >
             Cancel
           </Button>
-          <Button onClick={handlePayment} disabled={isPending || !service.walletAddress || !isSupportedCurrency}>
+          <Button 
+            onClick={handlePayment} 
+            disabled={isPending || !service.walletAddress || !isSupportedCurrency}
+            className="w-full bg-indigo-700 text-white py-2 rounded-md"
+          >
             {isPending ? 'Processing...' : `Pay ${service.price} ${service.currency}`}
           </Button>
         </div>
 
         {!isSupportedCurrency && (
-          <div className="mt-4 text-yellow-600">
-            <p>Payments in {service.currency} are not yet supported. Only ETH and USDC are accepted.</p>
+          <div className="px-6 pb-4">
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-yellow-700">Payments in {service.currency} are not yet supported. Only ETH and USDC are accepted.</p>
+            </div>
           </div>
         )}
 
         {hash && (
-          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-            <p className="text-green-700 dark:text-green-300">
-              Transaction submitted!{' '}
-              <a 
-                href={`https://basescan.org/tx/${hash}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="underline hover:text-green-800 dark:hover:text-green-200"
-              >
-                View on Basescan
-              </a>
-            </p>
-            {isProcessing && (
-              <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                Processing your purchase...
+          <div className="px-6 pb-4">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-green-700">
+                Transaction submitted!{' '}
+                <a 
+                  href={`https://basescan.org/tx/${hash}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-indigo-700 underline"
+                >
+                  View on Basescan
+                </a>
               </p>
-            )}
+              {isProcessing && (
+                <p className="mt-2 text-sm text-green-600">
+                  Processing your purchase...
+                </p>
+              )}
+            </div>
           </div>
         )}
         {errorMessage && errorMessage.trim() !== '' && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
-            <p className="text-red-700 dark:text-red-300">
-              {errorMessage.includes('Insufficient balance') || 
-               errorMessage.includes('insufficient funds') ||
-               errorMessage.includes('exceeds balance')
-                ? 'Insufficient balance. Please ensure you have enough funds.'
-                : errorMessage.includes('User rejected the request')
-                ? 'Transaction was cancelled.'
-                : `Error: ${errorMessage}`}
-            </p>
+          <div className="px-6 pb-4">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-700">
+                {errorMessage.includes('Insufficient balance') || 
+                 errorMessage.includes('insufficient funds') ||
+                 errorMessage.includes('exceeds balance')
+                  ? 'Insufficient balance. Please ensure you have enough funds.'
+                  : errorMessage.includes('User rejected the request')
+                  ? 'Transaction was cancelled.'
+                  : `Error: ${errorMessage}`}
+              </p>
+            </div>
           </div>
         )}
       </div>

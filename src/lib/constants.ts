@@ -14,31 +14,31 @@
  * The base URL of the application.
  * Used for generating absolute URLs for assets and API endpoints.
  */
-export const APP_URL = 'https://4b01-103-219-47-212.ngrok-free.app';
+export const APP_URL = 'https://gigsfun.vercel.app';
 
 /**
  * The name of the mini app as displayed to users.
  * Used in titles, headers, and app store listings.
  */
-export const APP_NAME = 'Starter Kit';
+export const APP_NAME = 'Gig.Fun';
 
 /**
  * A brief description of the mini app's functionality.
  * Used in app store listings and metadata.
  */
-export const APP_DESCRIPTION = 'A demo of the Neynar Starter Kit';
+export const APP_DESCRIPTION = 'Marketplace for Farcaster services and gigs';
 
 /**
  * The primary category for the mini app.
  * Used for app store categorization and discovery.
  */
-export const APP_PRIMARY_CATEGORY = 'developer-tools';
+export const APP_PRIMARY_CATEGORY = 'marketplace';
 
 /**
  * Tags associated with the mini app.
  * Used for search and discovery in app stores.
  */
-export const APP_TAGS = ['neynar', 'starter-kit', 'demo'];
+export const APP_TAGS = ['marketplace', 'services', 'gigs', 'farcaster'];
 
 // --- Asset URLs ---
 /**

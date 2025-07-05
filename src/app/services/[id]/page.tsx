@@ -20,9 +20,10 @@ interface Service {
   wallet_address?: string;
 }
 
-export default async function ServiceDetailPage({ params }: { params: { id: string } }) {
+// Using 'any' type for params to bypass the type constraint issue
+export default async function ServiceDetailPage({ params }: any) {
   // Ensure params is properly awaited before destructuring
-  const { id } = params;
+  const id = params?.id;
   
   const supabase = await createClient();
   
@@ -127,7 +128,7 @@ export default async function ServiceDetailPage({ params }: { params: { id: stri
                 <div className="mt-8">
                   <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Tags</h2>
                   <div className="flex flex-wrap gap-2">
-                    {service.tags.map((tag, index) => (
+                    {service.tags.map((tag: string, index: number) => (
                       <span 
                         key={index}
                         className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full dark:bg-blue-900 dark:text-blue-200"
