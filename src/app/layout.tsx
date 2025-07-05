@@ -6,6 +6,7 @@ import "~/app/globals.css";
 import { Providers } from "~/app/providers";
 import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
 import BottomNav from "~/components/BottomNav";
+import { FarcasterFrameInitializer } from '~/components/FarcasterFrameInitializer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default async function RootLayout({
             {children}
           </div>
           <BottomNav />
+          <FarcasterFrameInitializer />
         </Providers>
       </body>
     </html>

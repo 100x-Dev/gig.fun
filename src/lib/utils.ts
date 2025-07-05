@@ -9,14 +9,30 @@ interface MiniAppMetadata {
   name: string;
   iconUrl: string;
   homeUrl: string;
-  imageUrl?: string;
-  buttonTitle?: string;
   splashImageUrl?: string;
   splashBackgroundColor?: string;
   webhookUrl?: string;
+  subtitle?: string;
   description?: string;
+  screenshotUrls?: string[];
   primaryCategory?: string;
   tags?: string[];
+  heroImageUrl?: string;
+  tagline?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageUrl?: string;
+  noindex?: boolean;
+  requiredChains?: string[];
+  requiredCapabilities?: string[];
+  // Deprecated but kept for backward compatibility
+  imageUrl?: string;
+  buttonTitle?: string;
+  accountAssociation?: {
+    header: string;
+    payload: string;
+    signature: string;
+  };
 };
 
 interface MiniAppManifest {
@@ -25,7 +41,9 @@ interface MiniAppManifest {
     payload: string;
     signature: string;
   };
-  frame: MiniAppMetadata;
+  miniapp: MiniAppMetadata;
+  // Keep frame for backward compatibility
+  frame?: MiniAppMetadata;
 }
 
 export function cn(...inputs: ClassValue[]) {
@@ -45,30 +63,62 @@ export function getSecretEnvVars() {
 
 export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
   return {
-    version: "next",
-    imageUrl: ogImageUrl ?? APP_OG_IMAGE_URL,
-    button: {
-      title: APP_BUTTON_TEXT,
-      action: {
-        type: "launch_frame",
-        name: APP_NAME,
-        url: APP_URL,
-        splashImageUrl: APP_SPLASH_URL,
-        iconUrl: APP_ICON_URL,
-        splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
-        description: APP_DESCRIPTION,
-        primaryCategory: APP_PRIMARY_CATEGORY,
-        tags: APP_TAGS,
-      },
+    // Required fields
+    version: "vNext",
+    image: {
+      url: ogImageUrl ?? APP_OG_IMAGE_URL,
+      aspectRatio: "1.91:1"
     },
+    
+    // Frame metadata
+    frame: {
+      buttons: [
+        {
+          label: APP_BUTTON_TEXT || "Launch App",
+          action: "post_redirect"
+        }
+      ],
+      postUrl: `${APP_URL}/api/frame`,
+      refreshPeriod: 60
+    },
+    
+    // App metadata
+    app: {
+      id: APP_NAME.toLowerCase().replace(/\s+/g, '-'),
+      name: APP_NAME,
+      description: APP_DESCRIPTION,
+      icon: APP_ICON_URL,
+      splash: {
+        imageUrl: APP_SPLASH_URL,
+        backgroundColor: APP_SPLASH_BACKGROUND_COLOR || "#000000"
+      },
+      category: APP_PRIMARY_CATEGORY,
+      tags: APP_TAGS,
+      url: APP_URL,
+      webhookUrl: APP_WEBHOOK_URL
+    },
+    
+    // Additional metadata for better discovery
+    openGraph: {
+      title: APP_NAME,
+      description: APP_DESCRIPTION,
+      images: [{
+        url: ogImageUrl ?? APP_OG_IMAGE_URL,
+        width: 1200,
+        height: 630
+      }]
+    }
   };
 }
 
 export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
+  // Use process.env directly as this will be called from the server
+  const env = process.env;
+  
   // First check for MINI_APP_METADATA in .env and use that if it exists
-  if (process.env.MINI_APP_METADATA) {
+  if (env.MINI_APP_METADATA) {
     try {
-      const metadata = JSON.parse(process.env.MINI_APP_METADATA);
+      const metadata = JSON.parse(env.MINI_APP_METADATA);
       console.log('Using pre-signed mini app metadata from environment');
       return metadata;
     } catch (error) {
@@ -76,64 +126,109 @@ export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
     }
   }
 
-  if (!APP_URL) {
-    throw new Error('NEXT_PUBLIC_URL not configured');
+  const appUrl = env.NEXT_PUBLIC_URL;
+  if (!appUrl) {
+    throw new Error('NEXT_PUBLIC_URL not configured in environment variables');
   }
+  console.log('Using app URL:', appUrl);
 
   // Get the domain from the URL (without https:// prefix)
-  const domain = new URL(APP_URL).hostname;
+  const domain = new URL(appUrl).hostname;
   console.log('Using domain for manifest:', domain);
 
-  const secretEnvVars = getSecretEnvVars();
-  if (!secretEnvVars) {
-    console.warn('No seed phrase or FID found in environment variables -- generating unsigned metadata');
-  }
-
+  // Check for account association in environment variables
   let accountAssociation;
-  if (secretEnvVars) {
-    // Generate account from seed phrase
-    const account = mnemonicToAccount(secretEnvVars.seedPhrase);
-    const custodyAddress = account.address;
-
-    const header = {
-      fid: parseInt(secretEnvVars.fid),
-      type: 'custody',
-      key: custodyAddress,
-    };
-    const encodedHeader = Buffer.from(JSON.stringify(header), 'utf-8').toString('base64');
-
-    const payload = {
-      domain
-    };
-    const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
-
-    const signature = await account.signMessage({ 
-      message: `${encodedHeader}.${encodedPayload}`
-    });
-    const encodedSignature = Buffer.from(signature, 'utf-8').toString('base64url');
-
+  
+  // First try to get from environment variables
+  if (process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER &&
+      process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD &&
+      process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE) {
+    
     accountAssociation = {
-      header: encodedHeader,
-      payload: encodedPayload,
-      signature: encodedSignature
+      header: process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER,
+      payload: process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD,
+      signature: process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE
     };
+    console.log('Using account association from environment variables');
+  } 
+  // Fallback to generating from seed phrase if available
+  else {
+    const secretEnvVars = getSecretEnvVars();
+    if (secretEnvVars) {
+      try {
+        // Generate account from seed phrase
+        const account = mnemonicToAccount(secretEnvVars.seedPhrase);
+        const custodyAddress = account.address;
+
+        const header = {
+          fid: parseInt(secretEnvVars.fid),
+          type: 'custody',
+          key: custodyAddress,
+        };
+        const encodedHeader = Buffer.from(JSON.stringify(header), 'utf-8').toString('base64');
+
+        const payload = { domain };
+        const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
+
+        const signature = await account.signMessage({ 
+          message: `${encodedHeader}.${encodedPayload}`
+        });
+        const encodedSignature = Buffer.from(signature, 'utf-8').toString('base64url');
+
+        accountAssociation = {
+          header: encodedHeader,
+          payload: encodedPayload,
+          signature: encodedSignature
+        };
+        console.log('Generated account association from seed phrase');
+      } catch (error) {
+        console.error('Failed to generate account association:', error);
+      }
+    }
   }
 
-  return {
+  if (!accountAssociation) {
+    console.warn('No account association found -- domain verification will fail');
+  }
+
+  // Ensure all URLs use the correct ngrok domain and are properly formatted
+  const ensureHttpsUrl = (path: string): string => {
+    if (!path) return '';
+    // Always use the ngrok domain for all URLs
+    const ngrokDomain = '0154-103-219-47-212.ngrok-free.app';
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    return `https://${ngrokDomain}/${cleanPath}`.replace(/\/+$/, '');
+  };
+
+  // Base URL using ngrok domain
+  const baseUrl = 'https://0154-103-219-47-212.ngrok-free.app';
+
+  // Build the manifest object with properly formatted URLs
+  const manifest: MiniAppManifest = {
     accountAssociation,
-    frame: {
-      version: "1",
+    miniapp: {
+      version: '0.0.1',
       name: APP_NAME ?? "Neynar Starter Kit",
-      iconUrl: APP_ICON_URL,
-      homeUrl: APP_URL,
-      imageUrl: APP_OG_IMAGE_URL,
-      buttonTitle: APP_BUTTON_TEXT ?? "Launch Mini App",
-      splashImageUrl: APP_SPLASH_URL,
+      iconUrl: ensureHttpsUrl('/icon.png'),
+      homeUrl: baseUrl,
+      splashImageUrl: ensureHttpsUrl('/splash.png'),
       splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
-      webhookUrl: APP_WEBHOOK_URL,
+      webhookUrl: process.env.NEXT_PUBLIC_WEBHOOK_URL || ensureHttpsUrl('/api/webhook'),
       description: APP_DESCRIPTION,
       primaryCategory: APP_PRIMARY_CATEGORY,
       tags: APP_TAGS,
-    },
+      // Optional but recommended
+      ogTitle: APP_NAME,
+      ogDescription: APP_DESCRIPTION,
+      ogImageUrl: `${baseUrl}/api/opengraph-image`,
+      // Keep deprecated fields for backward compatibility
+      imageUrl: `${baseUrl}/api/opengraph-image`,
+      buttonTitle: APP_BUTTON_TEXT ?? "Launch Mini App",
+    }
   };
+
+  // Add frame for backward compatibility
+  manifest.frame = { ...manifest.miniapp };
+
+  return manifest;
 }

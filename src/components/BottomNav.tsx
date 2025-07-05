@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, ShoppingBag, User, Package } from 'lucide-react';
+import { Home, Search, ShoppingBag, User, MessageSquare } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -25,18 +25,11 @@ export default function BottomNav() {
           <span className="text-xs mt-1">Browse</span>
         </Link>
         <Link 
-          href="/gigs-purchased" 
-          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/gigs-purchased') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
+          href="/orders" 
+          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/orders') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
         >
           <ShoppingBag className="h-5 w-5" />
-          <span className="text-xs mt-1">Gigs Purchased</span>
-        </Link>
-        <Link 
-          href="/my-orders" 
-          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/my-orders') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
-        >
-          <Package className="h-5 w-5" />
-          <span className="text-xs mt-1">My Orders</span>
+          <span className="text-xs mt-1">Orders</span>
         </Link>
         <Link 
           href="/profile" 
@@ -44,6 +37,13 @@ export default function BottomNav() {
         >
           <User className="h-5 w-5" />
           <span className="text-xs mt-1">Profile</span>
+        </Link>
+        <Link 
+          href="/messages" 
+          className={`flex flex-col items-center justify-center p-2 ${pathname.startsWith('/messages') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}`}
+        >
+          <MessageSquare className="h-5 w-5" />
+          <span className="text-xs mt-1">Messages</span>
         </Link>
       </div>
     </nav>

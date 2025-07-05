@@ -7,7 +7,28 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function PUT(
+// Helper function to verify order ownership
+async function verifyOrderOwnership(orderId: string, fid: string | number, isSeller: boolean = true) {
+  const { data: order, error } = await supabase
+    .from('purchases')
+    .select('buyer_fid, seller_fid')
+    .eq('id', orderId)
+    .single();
+
+  if (error) {
+    return { error: 'Order not found', status: 404 };
+  }
+
+  const fidToCheck = isSeller ? order.seller_fid : order.buyer_fid;
+  if (String(fidToCheck) !== String(fid)) {
+    return { error: 'Forbidden', status: 403 };
+  }
+
+  return { order };
+}
+
+// Handle seller note updates
+export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -21,68 +42,42 @@ export async function PUT(
       );
     }
 
-    const { status, seller_notes } = await request.json();
-    if (!['completed', 'cancelled'].includes(status)) {
+    const { note } = await request.json();
+    if (!note || typeof note !== 'string') {
       return NextResponse.json(
-        { error: 'Invalid status' },
+        { error: 'Note is required' },
         { status: 400 }
       );
     }
 
-    // First, get the current purchase to verify ownership
-    const { data: purchase, error: fetchError } = await supabase
-      .from('purchases')
-      .select('seller_fid, status')
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    if (purchase.seller_fid !== session.user.fid) {
+    // Verify the user is the seller of this order
+    const ownership = await verifyOrderOwnership(id, session.user.fid, true);
+    if ('error' in ownership) {
       return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
+        { error: ownership.error },
+        { status: ownership.status }
       );
     }
-    
-    // Removing this check to allow updating notes on orders that are already 'completed'
-    // from the payment perspective, which is the user's current workflow.
-    /* if (purchase.status !== 'pending') {
-        return NextResponse.json(
-            { error: `Order has already been ${purchase.status}` },
-            { status: 400 }
-        );
-    } */
 
-    const updatePayload: any = {
-      status,
-      seller_notes,
-      updated_at: new Date().toISOString(),
-    };
-
-    if (status === 'completed') {
-      updatePayload.completed_at = new Date().toISOString();
-    } else if (status === 'cancelled') {
-      updatePayload.cancelled_at = new Date().toISOString();
-    }
-
-    const { data: updatedPurchase, error: updateError } = await supabase
+    // Update the seller note
+    const { data: updatedOrder, error: updateError } = await supabase
       .from('purchases')
-      .update(updatePayload)
+      .update({ 
+        seller_note: note,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', id)
-      .select('*, service:services!inner(*)')
+      .select('*')
       .single();
 
     if (updateError) {
-        console.error('Error updating order:', updateError);
-        throw updateError;
+      console.error('Error updating seller note:', updateError);
+      throw updateError;
     }
 
-    return NextResponse.json(updatedPurchase);
+    return NextResponse.json(updatedOrder);
   } catch (error) {
-    console.error('Error in PUT /api/orders/[id]:', error);
+    console.error('Error in POST /api/orders/[id]/note:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
@@ -90,6 +85,7 @@ export async function PUT(
   }
 }
 
+// Handle status updates
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -101,43 +97,50 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { seller_notes } = await request.json();
-    if (typeof seller_notes === 'undefined') {
-      return NextResponse.json({ error: 'seller_notes is required' }, { status: 400 });
+    const { status } = await request.json();
+    if (!['pending', 'in_progress', 'completed', 'cancelled'].includes(status)) {
+      return NextResponse.json(
+        { error: 'Invalid status' },
+        { status: 400 }
+      );
     }
 
-    const { data: purchase, error: fetchError } = await supabase
-      .from('purchases')
-      .select('seller_fid')
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    // Verify the user is the seller of this order
+    const ownership = await verifyOrderOwnership(id, session.user.fid, true);
+    if ('error' in ownership) {
+      return NextResponse.json(
+        { error: ownership.error },
+        { status: ownership.status }
+      );
     }
 
-    if (purchase.seller_fid !== session.user.fid) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const updatePayload: any = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Set appropriate timestamps based on status
+    if (status === 'completed') {
+      updatePayload.completed_at = new Date().toISOString();
+    } else if (status === 'cancelled') {
+      updatePayload.cancelled_at = new Date().toISOString();
     }
 
     const { data: updatedPurchase, error: updateError } = await supabase
       .from('purchases')
-      .update({
-        seller_notes,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', id)
-      .select('*, service:services!inner(*)')
+      .select('*')
       .single();
 
     if (updateError) {
-      console.error('Error updating seller notes:', updateError);
+      console.error('Error updating order status:', updateError);
       throw updateError;
     }
 
     return NextResponse.json(updatedPurchase);
   } catch (error) {
-    console.error('Error in PATCH /api/orders/[id]:', error);
+    console.error('Error in PATCH /api/orders/[id]/status:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

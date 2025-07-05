@@ -2,6 +2,7 @@
 
 import { useMiniApp } from '@neynar/react';
 import { signIn, useSession } from 'next-auth/react';
+import { CheckCircle2, UserCircle2, Loader2 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { useAccount, useConnect } from 'wagmi';
 
@@ -85,17 +86,32 @@ export default function SignIn() {
   }, [context, status, walletAddress]);
 
   if (status === 'loading') {
-    return <div>Loading session...</div>;
+    return (
+      <div className="flex items-center justify-center p-2">
+        <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Sign-in failed: {error}</div>;
+    return (
+      <div className="flex items-center p-2 text-red-500">
+        <span className="text-sm">Error</span>
+      </div>
+    );
   }
 
   if (status === 'authenticated') {
-    // Safely access username
-    return <div>Signed in as {session?.user?.username ?? 'user'}</div>;
+    return (
+      <div className="flex items-center p-2" title={`Signed in as ${session?.user?.username ?? 'user'}`}>
+        <CheckCircle2 className="h-5 w-5 text-green-500" />
+      </div>
+    );
   }
 
-  return <div>Please connect to Farcaster to sign in.</div>;
+  return (
+    <div className="flex items-center p-2" title="Not signed in">
+      <UserCircle2 className="h-5 w-5 text-gray-400" />
+    </div>
+  );
 }
