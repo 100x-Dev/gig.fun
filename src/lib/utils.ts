@@ -195,13 +195,13 @@ export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
   const ensureHttpsUrl = (path: string): string => {
     if (!path) return '';
     // Always use the ngrok domain for all URLs
-    const ngrokDomain = '0154-103-219-47-212.ngrok-free.app';
+    const ngrokDomain = '4b01-103-219-47-212.ngrok-free.app';
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
     return `https://${ngrokDomain}/${cleanPath}`.replace(/\/+$/, '');
   };
 
   // Base URL using ngrok domain
-  const baseUrl = 'https://0154-103-219-47-212.ngrok-free.app';
+  const baseUrl = 'https://4b01-103-219-47-212.ngrok-free.app';
 
   // Build the manifest object with properly formatted URLs
   const manifest: MiniAppManifest = {

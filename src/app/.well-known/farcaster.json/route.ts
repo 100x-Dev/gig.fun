@@ -3,11 +3,11 @@ import { getFarcasterMetadata } from '../../../lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-// Hardcoded account association values from Warpcast Developer Tools
+// Account association values for Farcaster verification
 const ACCOUNT_ASSOCIATION = {
-  header: 'eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgxNDQwNEIxODlBMDQyNmJjN2NkMjg5NkYzODNiRDIwQTNiMzUwZDI2In0',
-  payload: 'eyJkb21haW4iOiIwMTU0LTEwMy0yMTktNDctMjEyLm5ncm9rLWZyZWUuYXBwIn0',
-  signature: 'MHhkNWM4OWRlNTNhZTBhYWU2MjkwMjNmNDczMmY1Zjg1MDdjN2JkODYwMDM1YjFhNDZiOWVkOWVkZGFiMjkzNTA5MDQ2Y2ZjZGE3NDIyYjhkZmMwMDdjY2ZhMmU0Mjg3ZmIwNDViYmRjYjViNWQ1ZWUwZGM0NzA1YTliNDIyNTNjZTFi'
+  header: 'eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJhdXRoIiwia2V5IjoiMHhiODVCM2JiQjkzRmZENUE4YzIwQmU0MURkQ0VFQWYxNGMyZWMzNjYyIn0',
+  payload: 'eyJkb21haW4iOiI0YjAxLTEwMy0yMTktNDctMjEyLm5ncm9rLWZyZWUuYXBwIn0',
+  signature: 'wyQtRk5Meq/84L519S/wFxAR13e1q3cPUF62IkSZQMNnARmE4oKJLeuyysiteqKjt38aUNDOCdPzeyrL+plnPRw='
 };
 
 export async function GET() {

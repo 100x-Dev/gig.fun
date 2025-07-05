@@ -14,7 +14,7 @@
  * The base URL of the application.
  * Used for generating absolute URLs for assets and API endpoints.
  */
-export const APP_URL = process.env.NEXT_PUBLIC_URL!;
+export const APP_URL = 'https://4b01-103-219-47-212.ngrok-free.app';
 
 /**
  * The name of the mini app as displayed to users.

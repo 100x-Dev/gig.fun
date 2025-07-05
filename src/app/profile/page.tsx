@@ -1,48 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '~/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
+import { Card } from '~/components/ui/Card';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/Avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import ServiceCard from '~/components/ServiceCard';
-import { Service } from '~/types/service';
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUserServices = async () => {
-      if (!session?.user?.fid) return;
-      
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch(`/api/services?fid=${session.user.fid}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch services');
-        }
-        const data = await response.json();
-        setServices(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error('Error fetching services:', err);
-        setError('Failed to load services. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (session?.user) {
-      fetchUserServices();
-    }
-  }, [session?.user]);
 
   if (status === 'loading') {
     return (
@@ -63,8 +29,8 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <div className="w-full md:w-1/3">
+      <div className="flex justify-center">
+        <div className="w-full max-w-md">
           <Card className="overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-24"></div>
             <div className="px-6 pb-6 -mt-12">
@@ -77,7 +43,7 @@ export default function ProfilePage() {
                 </Avatar>
               </div>
               <div className="mt-4 text-center">
-                <h1 className="text-xl font-bold">{user.displayName || username}</h1>
+                <h1 className="text-2xl font-bold">{user.displayName || username}</h1>
                 <p className="text-gray-500 dark:text-gray-400">@{username}</p>
                 {user.walletAddress && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 truncate" title={user.walletAddress}>
@@ -91,20 +57,6 @@ export default function ProfilePage() {
                 Edit Profile
               </Button>
             </div>
-          </Card>
-        </div>
-
-        <div className="w-full md:w-2/3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Your recent interactions and updates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-gray-500">No recent activity to show.</p>
-              </div>
-            </CardContent>
           </Card>
         </div>
       </div>
