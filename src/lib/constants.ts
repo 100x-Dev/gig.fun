@@ -32,7 +32,7 @@ export const APP_DESCRIPTION = 'Marketplace for Farcaster services and gigs';
  * The primary category for the mini app.
  * Used for app store categorization and discovery.
  */
-export const APP_PRIMARY_CATEGORY = 'marketplace';
+export const APP_PRIMARY_CATEGORY = 'shopping';
 
 /**
  * Tags associated with the mini app.
