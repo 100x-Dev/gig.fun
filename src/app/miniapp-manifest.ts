@@ -6,7 +6,7 @@ const manifestData = {
     homeUrl: "https://gigsfun.vercel.app",
     imageUrl: "https://gigsfun.vercel.app/image.png",
     splashImageUrl: "https://gigsfun.vercel.app/splash.png",
-    splashBackgroundColor: "#6200EA",
+    splashBackgroundColor: "#ffffff",
     webhookUrl: "https://gigsfun.vercel.app/api/webhook",
     subtitle: "Connect and get gigs done",
     description: "Connect and get gigs done",
