@@ -1,0 +1,20 @@
+export const manifest = {
+  frame: {
+    name: "gig.fun",
+    version: "1",
+    iconUrl: "https://gigsfun.vercel.app/icon.png",
+    homeUrl: "https://gigsfun.vercel.app/",
+    imageUrl: "https://gigsfun.vercel.app/image.png",
+    splashImageUrl: "https://gigsfun.vercel.app/splash.png",
+    splashBackgroundColor: "#6200EA",
+    webhookUrl: "https://gigsfun.vercel.app/api/webhook",
+    subtitle: "connect and get gigs done",
+    description: "connect and get gigs done",
+    primaryCategory: "utility"
+  },
+  accountAssociation: {
+    header: "eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJhdXRoIiwia2V5IjoiMHhiODVCM2JiQjkzRmZENUE4YzIwQmU0MURkQ0VFQWYxNGMyZWMzNjYyIn0",
+    payload: "eyJkb21haW4iOiJodHRwczovL2dpZ3NmdW4udmVyY2VsLmFwcC8ifQ",
+    signature: "Ze+WQZhX4fDzwecIWO6OCX17J+3b60EC9+ahWbOMwXNVtS645crK5ApxwVgVGe9jAk+iv65KX1JwjE/YEeMZoRw="
+  }
+};
