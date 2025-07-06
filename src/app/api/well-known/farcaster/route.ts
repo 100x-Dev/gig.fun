@@ -2,19 +2,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   return NextResponse.json({
-    frame: {
-      name: "gig.fun",
-      version: "1",
-      iconUrl: "https://gigsfun.vercel.app//icon.png",
-      homeUrl: "https://gigsfun.vercel.app/",
-      imageUrl: "https://gigsfun.vercel.app//image.png",
-      splashImageUrl: "https://gigsfun.vercel.app//splash.png",
-      splashBackgroundColor: "#6200EA",
-      webhookUrl: "https://gigsfun.vercel.app//api/webhook",
-      subtitle: "connect and get gigs done",
-      description: "connect and get gigs done",
-      primaryCategory: "utility"
-    },
     accountAssociation: {
       header: "eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgxNDQwNEIxODlBMDQyNmJjN2NkMjg5NkYzODNiRDIwQTNiMzUwZDI2In0",
       payload: "eyJkb21haW4iOiJnaWdzZnVuLnZlcmNlbC5hcHAifQ",

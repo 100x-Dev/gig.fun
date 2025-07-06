@@ -14,7 +14,7 @@
  * The base URL of the application.
  * Used for generating absolute URLs for assets and API endpoints.
  */
-export const APP_URL = 'https://gigsfun.vercel.app';
+export const APP_URL = 'https://gigfun-new.vercel.app';
 
 /**
  * The name of the mini app as displayed to users.
@@ -29,10 +29,10 @@ export const APP_NAME = 'Gig.Fun';
 export const APP_DESCRIPTION = 'Marketplace for Farcaster services and gigs';
 
 /**
- * The primary category of the mini app.
- * Must be one of the allowed enum values.
+ * The primary category for the mini app.
+ * Used for app store categorization and discovery.
  */
-export const APP_PRIMARY_CATEGORY = 'entertainment';
+export const APP_PRIMARY_CATEGORY = 'shopping';
 
 /**
  * Tags associated with the mini app.

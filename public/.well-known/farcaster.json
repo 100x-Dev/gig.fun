@@ -1,20 +1,7 @@
 {
-  "frame": {
-    "name": "gig.fun",
-    "version": "1",
-    "iconUrl": "https://gigsfun.vercel.app//icon.png",
-    "homeUrl": "https://gigsfun.vercel.app/",
-    "imageUrl": "https://gigsfun.vercel.app//image.png",
-    "splashImageUrl": "https://gigsfun.vercel.app//splash.png",
-    "splashBackgroundColor": "#6200EA",
-    "webhookUrl": "https://gigsfun.vercel.app//api/webhook",
-    "subtitle": "connect and get gigs done",
-    "description": "connect and get gigs done",
-    "primaryCategory": "utility"
-  },
   "accountAssociation": {
-    "header": "eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgxNDQwNEIxODlBMDQyNmJjN2NkMjg5NkYzODNiRDIwQTNiMzUwZDI2In0",
+    "header": "eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJhdXRoIiwia2V5IjoiMHhiODVCM2JiQjkzRmZENUE4YzIwQmU0MURkQ0VFQWYxNGMyZWMzNjYyIn0",
     "payload": "eyJkb21haW4iOiJnaWdzZnVuLnZlcmNlbC5hcHAifQ",
-    "signature": "MHg1NjVhYzc2YzgzMjc4ZTMzMDA0M2U3MzA4ZDUyN2Y2NGYyZDk0NTZjNTEzNzhiM2ExYWM0ODBlNjc0ZmQ0YWY2MGJhMWFmYWZkMzIwNWYzN2YxOWQxZjg3YmFhNTVhN2ZhZjVhNjc0NWM4ZjZiM2NiYThmOGIwMGFlOGFhMzdmYzFj"
+    "signature": "m8nvW+sqLwbjFGVYPgSH/b55d2Lq/r+HxD9F6y9ZSToBrLaW2QMOGINz1N7I6NMBoELE8/hBafZg3NqAzD1IcBw="
   }
 }

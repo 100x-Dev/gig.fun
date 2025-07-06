@@ -194,7 +194,7 @@ export async function getFarcasterMetadata(): Promise<MiniAppManifest> {
   // Ensure all URLs use the correct ngrok domain and are properly formatted
   const ensureHttpsUrl = (path: string): string => {
     if (!path) return '';
-    // Always use the production domain for all URLs
+    // Always use the ngrok domain for all URLs
     const domain = 'gigsfun.vercel.app';
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
     return `https://${domain}/${cleanPath}`.replace(/\/+$/, '');
