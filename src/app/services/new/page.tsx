@@ -31,8 +31,8 @@ export default function NewServicePage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Create a New Service</h1>
+    <div className="container mx-auto pt-1 pb-4 px-4 max-w-3xl">
+      <h1 className="text-3xl font-bold mb-4 text-[var(--primary)]">Create a New Gig</h1>
       <CreateServiceForm />
     </div>
   );

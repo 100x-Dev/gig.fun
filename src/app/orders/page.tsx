@@ -250,7 +250,7 @@ export default function OrdersPage() {
     <div className="bg-[var(--background)] min-h-screen">
       <div className="container mx-auto p-4">
         <h1 className="text-3xl text-[var(--primary)] mb-6 text-center">
-          {view === 'purchased' ? 'Gigs Purchased' : 'Gigs Ordered'}
+          {view === 'purchased' ? 'Gigs Purchased' : 'Gigs Sold'}
         </h1>
       
         {/* Toggle View */}
@@ -273,7 +273,7 @@ export default function OrdersPage() {
               : 'text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:text-white'
           }`}
         >
-          Gigs Ordered
+          Gigs Sold
         </button>
       </div>
 

@@ -26,12 +26,12 @@ export function LandingPage() {
             <div className="mt-12 flex flex-col sm:flex-row justify-center gap-5">
               <Link href="/services" className="w-full sm:w-auto">
                 <button className="w-full px-8 py-4 rounded-full bg-[#3C219A] text-white font-medium text-lg hover:bg-[#5C41BA] transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-[#3C219A]/20">
-                  browse services
+                  browse gigs
                 </button>
               </Link>
               <Link href="/services/new" className="w-full sm:w-auto">
                 <button className="w-full px-8 py-4 rounded-full bg-white text-[#3C219A] border-2 border-[#3C219A] font-medium text-lg hover:bg-[#3C219A] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-[#3C219A]/20">
-                  create a service
+                  create a gig
                 </button>
               </Link>
             </div>

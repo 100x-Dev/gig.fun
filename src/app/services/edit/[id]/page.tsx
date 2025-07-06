@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '~/components/ui/Button';
-import { Input } from '~/components/ui/Input';
+import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/Textarea';
 import { Label } from '~/components/ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/Select';
@@ -128,8 +128,8 @@ export default function EditServicePage() {
         throw new Error(errorData.error || 'Failed to update service');
       }
 
-      // Redirect to the my-gigs page after successful update
-      router.push('/my-gigs');
+      // Redirect to the services browse page after successful update
+      router.push('/services');
       router.refresh(); // Refresh the page to show updated data
     } catch (err) {
       console.error('Error updating service:', err);
@@ -142,7 +142,7 @@ export default function EditServicePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3C219A]"></div>
       </div>
     );
   }
@@ -166,47 +166,50 @@ export default function EditServicePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <div className="flex items-center mb-8">
+    <div className="container mx-auto px-4 pt-1 pb-4 max-w-3xl">
+      <div className="flex items-center mb-4">
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => router.back()}
-          className="mr-2 p-2"
+          className="mr-2 p-2 text-[#3C219A] hover:bg-gray-100 rounded-full"
         >←
         </Button>
-        <h1 className="text-2xl font-bold">Edit Service</h1>
+        <h1 className="text-2xl font-bold text-[var(--primary)]">Edit Gig</h1>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="w-full bg-white rounded-lg shadow-md p-4 pt-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="title">Service Title</Label>
+          <Label htmlFor="title" className="block text-sm font-medium text-[var(--primary)] mb-1">Gig Title</Label>
           <Input
             id="title"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="e.g., I will design a modern website"
+            placeholder="e.g., I will design a professional logo"
+            className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
             required
           />
         </div>
 
         <div>
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description" className="block text-sm font-medium text-[var(--primary)] mb-1">Description</Label>
           <Textarea
             id="description"
             name="description"
             value={formData.description}
             onChange={handleChange}
             rows={5}
-            placeholder="Describe your service in detail..."
+            placeholder="Describe your gig in detail..."
+            className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
             required
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="price" className="block text-sm font-medium text-[var(--primary)] mb-1">Price</Label>
             <div className="relative">
               <Input
                 id="price"
@@ -222,7 +225,7 @@ export default function EditServicePage() {
           </div>
 
           <div>
-            <Label htmlFor="currency">Currency</Label>
+            <Label htmlFor="currency" className="block text-sm font-medium text-[var(--primary)] mb-1">Currency</Label>
             <Select
               value={formData.currency}
               onValueChange={(value) => handleSelectChange('currency', value)}
@@ -238,7 +241,7 @@ export default function EditServicePage() {
           </div>
 
           <div>
-            <Label htmlFor="deliveryDays">Delivery Time (days)</Label>
+            <Label htmlFor="deliveryDays" className="block text-sm font-medium text-[var(--primary)] mb-1">Delivery Time (days)</Label>
             <Input
               id="deliveryDays"
               name="deliveryDays"
@@ -252,7 +255,7 @@ export default function EditServicePage() {
         </div>
 
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category" className="block text-sm font-medium text-[var(--primary)] mb-1">Category</Label>
           <Select
             value={formData.category}
             onValueChange={(value) => handleSelectChange('category', value)}
@@ -275,7 +278,7 @@ export default function EditServicePage() {
         </div>
 
         <div>
-          <Label>Tags</Label>
+          <Label className="block text-sm font-medium text-[var(--primary)] mb-1">Tags</Label>
           <div className="flex gap-2">
             <Input
               value={tagInput}
@@ -319,20 +322,20 @@ export default function EditServicePage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-6">
           <Button
             variant="outline"
             type="button"
             onClick={() => router.back()}
             disabled={isSubmitting}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-[#3C219A] border-[#3C219A]"
           >
             <span>←</span> Back
           </Button>
           <Button 
             type="submit" 
             disabled={isSubmitting}
-            className="min-w-[120px]"
+            className="min-w-[120px] px-8 py-3 bg-[#3C219A] text-white font-medium rounded-full hover:bg-[#5C41BA] focus:outline-none focus:ring-2 focus:ring-[#3C219A] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -341,7 +344,8 @@ export default function EditServicePage() {
             )}
           </Button>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

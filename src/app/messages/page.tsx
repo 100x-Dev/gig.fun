@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '~/components/ui/Avatar';
 import { Button } from '~/components/ui/Button';
-import { Input } from '~/components/ui/Input';
+import { Input } from '~/components/ui/input';
 import { Camera, Check, MessageSquarePlus, MoreVertical, Search } from 'lucide-react';
 import { cn } from '~/lib/utils';
 

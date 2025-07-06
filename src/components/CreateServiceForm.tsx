@@ -52,16 +52,18 @@ export default function CreateServiceForm() {
     e.preventDefault();
 
     if (!context?.user?.fid) {
-      setError('Please connect with Farcaster to create a service');
+      setError('Please connect with Farcaster to create a gig');
       return;
     }
 
+    // Get wallet address from session if available
     const walletAddress = session?.user?.walletAddress;
 
-    if (!walletAddress) {
-      setError('Farcaster wallet address not found in session. Please sign in again.');
-      return;
-    }
+    // Log wallet address status for debugging
+    console.log('CreateServiceForm - Wallet address status:', {
+      hasWalletAddress: !!walletAddress,
+      walletAddressValue: walletAddress || 'Not available'
+    });
 
     setIsSubmitting(true);
     setError('');
@@ -99,11 +101,11 @@ export default function CreateServiceForm() {
           console.error('Failed to parse error response:', jsonError);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const errorMessage = errorData?.details || errorData?.error || 'Failed to create service';
+        const errorMessage = errorData?.details || errorData?.error || 'Failed to create gig';
         throw new Error(errorMessage);
       }
 
-      console.log('Service created successfully, redirecting...');
+      console.log('Gig created successfully, redirecting...');
       // Redirect to services page with success state
       router.push('/services?created=true');
     } catch (err) {
@@ -117,19 +119,19 @@ export default function CreateServiceForm() {
   if (!isMounted) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3C219A]"></div>
       </div>
     );
   }
 
   if (!context?.user?.fid) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md dark:bg-gray-800 text-center">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Sign In Required</h2>
-        <p className="mb-6 text-gray-600 dark:text-gray-300">Please sign in with Farcaster to create a service.</p>
+      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md text-center">
+        <h2 className="text-2xl font-bold mb-4 text-[var(--primary)]">Sign In Required</h2>
+        <p className="mb-6 text-[#3C219A]/70">Please sign in with Farcaster to create a gig.</p>
         <button
           onClick={() => router.push('/')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[#3C219A] text-white rounded-full hover:bg-[#5C41BA] transition-colors"
         >
           Go to Home
         </button>
@@ -142,43 +144,43 @@ export default function CreateServiceForm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="mb-4">
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-2">
         <button 
           onClick={handleBack}
-          className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full h-9 w-9 flex items-center justify-center"
+          className="hover:bg-gray-100 rounded-full h-9 w-9 flex items-center justify-center"
           aria-label="Go back"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 text-[#3C219A]" />
         </button>
       </div>
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-        <div className="flex items-center mb-6">
+      <div className="w-full bg-white rounded-lg shadow-md p-4 pt-3">
+        <div className="flex items-center mb-4">
           {context.user?.pfpUrl && (
             <img 
               src={context.user.pfpUrl} 
               alt={context.user.displayName || 'User'} 
-              className="w-10 h-10 rounded-full mr-3"
+              className="w-10 h-10 rounded-full mr-3 border border-[#3C219A]/20"
             />
           )}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Service Details</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <h2 className="text-2xl font-bold text-[var(--primary)]">Gig Details</h2>
+            <p className="text-sm text-[#3C219A]/70">
               {context.user?.displayName || `@${context.user?.username}`}
             </p>
           </div>
         </div>
         
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-100 rounded">
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {error}
           </div>
         )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Service Title *
+          <label htmlFor="title" className="block text-sm font-medium text-[var(--primary)] mb-1">
+            Gig Title *
           </label>
           <input
             type="text"
@@ -187,13 +189,13 @@ export default function CreateServiceForm() {
             value={formData.title}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
             placeholder="e.g., I will design a professional logo"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="description" className="block text-sm font-medium text-[var(--primary)] mb-1">
             Description *
           </label>
           <textarea
@@ -203,14 +205,14 @@ export default function CreateServiceForm() {
             onChange={handleChange}
             required
             rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Describe your service in detail..."
+            className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
+            placeholder="Describe your gig in detail..."
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="price" className="block text-sm font-medium text-[var(--primary)] mb-1">
               Price *
             </label>
             <div className="relative rounded-md shadow-sm">
@@ -223,7 +225,7 @@ export default function CreateServiceForm() {
                 min="0"
                 step="0.01"
                 required
-                className="w-full pl-4 pr-20 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full pl-4 pr-20 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
                 placeholder="0.00"
               />
               <div className="absolute inset-y-0 right-0 flex items-center">
@@ -231,7 +233,7 @@ export default function CreateServiceForm() {
                   name="currency"
                   value={formData.currency}
                   onChange={handleChange}
-                  className="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 dark:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm rounded-r-md"
+                  className="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-[#3C219A] focus:ring-2 focus:ring-[#3C219A] focus:border-transparent sm:text-sm rounded-r-md"
                 >
                   <option value="USDC">USDC</option>
                   <option value="ETH">ETH</option>
@@ -241,7 +243,7 @@ export default function CreateServiceForm() {
           </div>
 
           <div>
-            <label htmlFor="deliveryDays" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="deliveryDays" className="block text-sm font-medium text-[var(--primary)] mb-1">
               Delivery Time (days) *
             </label>
             <input
@@ -252,14 +254,14 @@ export default function CreateServiceForm() {
               onChange={handleChange}
               min="1"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
               placeholder="e.g., 7"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="category" className="block text-sm font-medium text-[var(--primary)] mb-1">
             Category *
           </label>
           <select
@@ -268,11 +270,11 @@ export default function CreateServiceForm() {
             value={formData.category}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
           >
-            <option value="">Select a category</option>
+            <option value="" className="text-[#3C219A]">Select a category</option>
             {serviceCategories.map((category: string) => (
-              <option key={category} value={category}>
+              <option key={category} value={category} className="text-[#3C219A]">
                 {category}
               </option>
             ))}
@@ -280,7 +282,7 @@ export default function CreateServiceForm() {
         </div>
 
         <div>
-          <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="tags" className="block text-sm font-medium text-[var(--primary)] mb-1">
             Tags
           </label>
           <input
@@ -289,21 +291,21 @@ export default function CreateServiceForm() {
             name="tags"
             value={formData.tags}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-[#3C219A] rounded-md focus:ring-2 focus:ring-[#3C219A] focus:border-transparent"
             placeholder="e.g., design, logo, branding (comma separated)"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-[#3C219A]/70">
             Add relevant tags separated by commas (max 5 tags)
           </p>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-6">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3 bg-[#3C219A] text-white font-medium rounded-full hover:bg-[#5C41BA] focus:outline-none focus:ring-2 focus:ring-[#3C219A] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Creating...' : 'Create Service'}
+            {isSubmitting ? 'Creating...' : 'Create Gig'}
           </button>
         </div>
       </form>

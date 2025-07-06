@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '~/components/ui/Button';
-import { Input } from '~/components/ui/Input';
+import { Input } from '~/components/ui/input';
 import { Search, X } from 'lucide-react';
 import ServiceCard from '~/components/ServiceCard';
 import { Service } from '~/types/service';
@@ -133,7 +133,7 @@ export default function ServicesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <h1 className="text-3xl font-bold text-[var(--primary)]">Services</h1>
+        <h1 className="text-3xl font-bold text-[var(--primary)]">Gigs</h1>
         <div className="w-full md:w-auto flex items-center gap-4">
             <div className="relative flex-1 md:max-w-md">
                 <div className="absolute inset-y-0 right-0 pr-10 flex items-center pointer-events-none">
@@ -141,7 +141,7 @@ export default function ServicesPage() {
                 </div>
                 <input
                 type="text"
-                placeholder="Search services..."
+                placeholder="Search gigs..."
                 className="pl-3 pr-10 w-full rounded-md border border-[#3C219A] text-[#3C219A] focus:outline-none focus:ring-2 focus:ring-[#3C219A] transition-all duration-200"
                 style={{ 
                   color: '#3C219A', 
@@ -166,12 +166,11 @@ export default function ServicesPage() {
                 )}
             </div>
             {user && (
-                <button 
+                <button
                     onClick={handleCreateNew}
                     className="bg-white text-[#3C219A] border border-[#3C219A] hover:bg-[#3C219A] hover:text-white transition-all duration-200 px-4 py-2 rounded-md"
-                    style={{ borderColor: '#3C219A', color: '#3C219A' }}
                 >
-                    Create Service
+                    Create Gig
                 </button>
             )}
         </div>
@@ -194,7 +193,7 @@ export default function ServicesPage() {
             />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-[var(--primary)]">
-            {searchQuery ? 'No matching services found' : 'No services available'}
+            {searchQuery ? 'No matching gigs found' : 'No gigs available'}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
             {searchQuery ? 'Try a different search term.' : 'Why not be the first to create one?'}
@@ -202,7 +201,7 @@ export default function ServicesPage() {
           {!searchQuery && user && (
             <div className="mt-6">
               <Button onClick={handleCreateNew}>
-                Create a Service
+                Create a Gig
               </Button>
             </div>
           )}
@@ -211,7 +210,7 @@ export default function ServicesPage() {
         <div className="space-y-12">
             {filteredOtherServices.length > 0 && (
                 <div>
-                    <h2 className="text-2xl font-bold text-[var(--primary)] mb-6">Browse All Services</h2>
+                    <h2 className="text-2xl font-bold text-[var(--primary)] mb-6">Browse All Gigs</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredOtherServices.map((service) => (
                             <ServiceCard 
@@ -226,7 +225,7 @@ export default function ServicesPage() {
             
             {filteredMyServices.length > 0 && (
                 <div>
-                    <h2 className="text-2xl font-bold text-[var(--primary)] mb-6">Your Services</h2>
+                    <h2 className="text-2xl font-bold text-[var(--primary)] mb-6">Your Gigs</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredMyServices.map((service) => (
                             <ServiceCard 

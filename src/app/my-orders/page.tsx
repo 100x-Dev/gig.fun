@@ -242,12 +242,12 @@ export default function MyOrdersPage() {
                     </CardDescription>
                   </div>
                   <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-sm ${order.status === 'completed'
-                      ? 'bg-emerald-400 dark:bg-emerald-500 shadow-emerald-200 dark:shadow-emerald-700/30'
-                      : order.status === 'cancelled'
-                        ? 'bg-rose-500'
-                        : order.status === 'disputed'
-                          ? 'bg-amber-500'
-                          : 'bg-indigo-500'
+                    ? 'bg-emerald-400 dark:bg-emerald-500 shadow-emerald-200 dark:shadow-emerald-700/30'
+                    : order.status === 'cancelled'
+                      ? 'bg-rose-500'
+                      : order.status === 'disputed'
+                        ? 'bg-amber-500'
+                        : 'bg-indigo-500'
                     }`}>
                     {getStatusIcon(order.status)}
                     <span className="capitalize">{getStatusText(order.status)}</span>

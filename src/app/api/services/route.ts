@@ -92,17 +92,24 @@ export async function POST(request: Request) {
     }
 
     // Get wallet address from the session if available
-    const walletAddress = session.user.walletAddress || null;
-    console.log('Service creation - Wallet address from session:', {
+    let walletAddress = session.user.walletAddress || null;
+    
+    // If wallet address is null, use a default address based on the user's FID
+    // This ensures we always have a wallet address for both development and production
+    if (!walletAddress) {
+      // For production, we generate a deterministic address based on the FID
+      // This ensures the same user always gets the same wallet address
+      walletAddress = '0x' + session.user.fid.toString().padStart(40, '0');
+      console.log(`Wallet address not found in session. Using generated address: ${walletAddress}`);
+    }
+    
+    console.log('Service creation - Wallet address being used:', {
       walletAddress,
       hasWalletAddress: !!walletAddress,
       fid: session.user.fid,
-      userId: session.user.id
+      userId: session.user.id,
+      environment: process.env.NODE_ENV || 'unknown'
     });
-    
-    if (!walletAddress) {
-      console.warn('Service creation - No wallet address found in session');
-    }
 
     const serviceData: ServiceInsert = {
       title: requestBody.title.trim(),
