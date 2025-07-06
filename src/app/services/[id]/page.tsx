@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '~/lib/supabase/server';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+// Fix import by using the correct path
 import BackButton from './BackButton';
 
 interface Service {

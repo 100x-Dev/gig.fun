@@ -7,6 +7,7 @@ import "~/app/theme.css";
 import { Providers } from "~/app/providers";
 import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
 import BottomNav from "~/components/BottomNav";
+import Header from "~/components/Header";
 import { FarcasterFrameInitializer } from '~/components/FarcasterFrameInitializer';
 
 const jua = Jua({ weight: '400', subsets: ['latin'] });
@@ -27,7 +28,8 @@ export default async function RootLayout({
     <html lang="en">
       <body className={jua.className}>
         <Providers session={session}>
-          <div className="pb-16">
+          <Header />
+          <div className="pb-16 pt-2">
             {children}
           </div>
           <BottomNav />
