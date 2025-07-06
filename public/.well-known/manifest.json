@@ -1,0 +1,20 @@
+{
+  "frame": {
+    "name": "daada",
+    "version": "1",
+    "iconUrl": "https://4338-103-219-47-212.ngrok-free.app/icon.png",
+    "homeUrl": "https://4338-103-219-47-212.ngrok-free.app",
+    "imageUrl": "https://4338-103-219-47-212.ngrok-free.app/image.png",
+    "splashImageUrl": "https://4338-103-219-47-212.ngrok-free.app/splash.png",
+    "splashBackgroundColor": "#6200EA",
+    "webhookUrl": "https://4338-103-219-47-212.ngrok-free.app/api/webhook",
+    "subtitle": "adax",
+    "description": "addead",
+    "primaryCategory": "entertainment"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEwMDgzNzgsInR5cGUiOiJhdXRoIiwia2V5IjoiMHhiODVCM2JiQjkzRmZENUE4YzIwQmU0MURkQ0VFQWYxNGMyZWMzNjYyIn0",
+    "payload": "eyJkb21haW4iOiI0MzM4LTEwMy0yMTktNDctMjEyLm5ncm9rLWZyZWUuYXBwIn0",
+    "signature": "SAjtjGyG329kl2D1OO/0H9RMjokFtycVSwn7/dCy3lACjMtVENeBt69zGWLSyU0zpGztE3UaWIGipXOLb1nVKBw="
+  }
+}
