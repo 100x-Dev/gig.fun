@@ -91,6 +91,23 @@ export default function ServiceCard({ service, currentUser, showActions = false,
           </span>
         </div>
 
+        {/* Provider Details - Always visible */}
+        {service.userName && (
+          <div className="flex items-center text-sm mb-4">
+            <span className="font-medium text-black w-24">Provider:</span>
+            <div className="flex items-center">
+              {service.userPfp && (
+                <img
+                  src={service.userPfp}
+                  alt={service.userName}
+                  className="w-6 h-6 rounded-full mr-2 border border-[var(--primary-light)]"
+                />
+              )}
+              <span className="text-black">{service.userName}</span>
+            </div>
+          </div>
+        )}
+
         {/* Service Description */}
         <div className="mb-4">
           <p className={`text-black text-sm ${isExpanded ? '' : 'line-clamp-3'}`}>
@@ -110,35 +127,20 @@ export default function ServiceCard({ service, currentUser, showActions = false,
                   {service.deliveryDays} day{service.deliveryDays !== 1 ? 's' : ''}
                 </span>
               </div>
-              {service.userName && (
-                <div className="flex items-center text-sm">
-                  <span className="font-medium text-black w-24">Provider:</span>
-                  <div className="flex items-center">
-                    {service.userPfp && (
-                      <img
-                        src={service.userPfp}
-                        alt={service.userName}
-                        className="w-6 h-6 rounded-full mr-2 border border-[var(--primary-light)]"
-                      />
-                    )}
-                    <span className="text-black">{service.userName}</span>
-                  </div>
-                </div>
-              )}
+              
+              {/* Tags - Moved inside expandable section */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {service.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-2.5 py-0.5 text-xs font-medium bg-[var(--primary-light)/10] text-black rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {service.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="px-2.5 py-0.5 text-xs font-medium bg-[var(--primary-light)/10] text-black rounded-full"
-            >
-              {tag}
-            </span>
-          ))}
         </div>
 
         {/* Card Footer with actions */}
