@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, Trash2 } from 'lucide-react';
+import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import { Button } from './ui/Button';
 import PaymentFormNew from './PaymentFormNew';
 import { Service } from '~/types/service';
@@ -189,12 +189,27 @@ export default function ServiceCard({ service, currentUser, showActions = false,
             )}
 
             {currentUser && !isServiceCreator && (
-              <Button
-                onClick={handleBookNow}
-                className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold py-2 px-4 rounded-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
-              >
-                Book Now
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const recipientFid = service.fid;
+                    const defaultMessage = `Hi, I'm interested in your service "${service.title}"`;
+                    const encodedMessage = encodeURIComponent(defaultMessage);
+                    window.open(`https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`, '_blank');
+                  }}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Message
+                </Button>
+                <Button
+                  onClick={handleBookNow}
+                  className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold py-2 px-4 rounded-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                >
+                  Book Now
+                </Button>
+              </div>
             )}
           </div>
         </div>

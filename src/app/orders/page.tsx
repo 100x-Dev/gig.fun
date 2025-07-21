@@ -8,8 +8,7 @@ import { Button } from '~/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
 import { Textarea } from '~/components/ui/Textarea';
-import { Label } from '~/components/ui/Label';
-import { ExternalLink, Loader2, MessageSquare } from 'lucide-react';
+import { Loader2, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 // Initialize Farcaster SDK
@@ -70,9 +69,6 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'purchased' | 'ordered'>('purchased');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [message, setMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
   const [isNoteSaving, setIsNoteSaving] = useState(false);
@@ -153,22 +149,7 @@ export default function OrdersPage() {
     fetchOrders();
   }, [status, view]);
 
-  const handleSendMessage = async () => {
-    if (!selectedOrder || !message.trim()) return;
-    
-    try {
-      setIsSending(true);
-      // Implement your message sending logic here
-      console.log('Sending message:', { orderId: selectedOrder.id, message });
-      // Close the dialog and reset the form
-      setIsDialogOpen(false);
-      setMessage('');
-    } catch (err) {
-      console.error('Error sending message:', err);
-    } finally {
-      setIsSending(false);
-    }
-  };
+  // Message handling now uses Farcaster Direct Casts instead of custom implementation
 
   const handleSaveNote = async () => {
     if (!selectedOrder || !currentNote.trim()) return;
@@ -408,22 +389,14 @@ export default function OrdersPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setSelectedOrder(order);
-                        setIsDialogOpen(true);
+                        const recipientFid = view === 'purchased' ? order.seller_fid : order.buyer_fid;
+                        const defaultMessage = `Hi, I'm messaging about the order for "${order.service.title}" (Order ID: ${order.id.slice(0, 8)}...)`;
+                        const encodedMessage = encodeURIComponent(defaultMessage);
+                        window.open(`https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`, '_blank');
                       }}
                     >
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Message
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                    >
-                      <Link href={`/services/${order.service_id}`}>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        View Service
-                      </Link>
+                      Message on Farcaster
                     </Button>
                   </div>
                 </div>
@@ -433,103 +406,51 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {/* Message Dialog */}
+      {/* Note Dialog */}
       {selectedOrder && (
-        <>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  Message {view === 'purchased' ? 'Seller' : 'Buyer'}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="message">Your Message</Label>
-                  <Textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder={`Type your message to ${
-                      view === 'purchased' 
-                        ? selectedOrder.seller?.display_name || selectedOrder.seller?.username || 'the seller'
-                        : selectedOrder.buyer?.display_name || selectedOrder.buyer?.username || 'the buyer'
-                    }...`}
-                    className="mt-1"
-                    rows={4}
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                    disabled={isSending}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSendMessage} 
-                    disabled={isSending || !message.trim()}
-                  >
-                    {isSending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      'Send Message'
-                    )}
-                  </Button>
-                </div>
+        <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add a Note to Order</DialogTitle>
+              <DialogDescription>
+                Add a private note for this order. Only you can see this note.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Textarea
+                value={currentNote}
+                onChange={(e) => setCurrentNote(e.target.value)}
+                placeholder="Add your note here..."
+                className="min-h-[120px]"
+              />
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsNoteDialogOpen(false);
+                    setCurrentNote('');
+                  }}
+                  disabled={isNoteSaving}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveNote}
+                  disabled={isNoteSaving || !currentNote.trim()}
+                >
+                  {isNoteSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Note'
+                  )}
+                </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Note Dialog */}
-          <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add a Note to Order</DialogTitle>
-                <DialogDescription>
-                  Add a private note for this order. Only you can see this note.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Textarea
-                  value={currentNote}
-                  onChange={(e) => setCurrentNote(e.target.value)}
-                  placeholder="Add your note here..."
-                  className="min-h-[120px]"
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsNoteDialogOpen(false);
-                      setCurrentNote('');
-                    }}
-                    disabled={isNoteSaving}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSaveNote}
-                    disabled={isNoteSaving || !currentNote.trim()}
-                  >
-                    {isNoteSaving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save Note'
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
     </div>
