@@ -7,13 +7,14 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function POST(
-  request: NextRequest
-) {
+export async function POST(request: NextRequest) {
   try {
-    // Get the order ID from the URL pathname
+    // Extract ID from URL path
     const url = new URL(request.url);
-    const id = url.pathname.split('/').pop() || '';
+    const pathParts = url.pathname.split('/');
+    const id = pathParts[pathParts.length - 2]; // Get the ID from the URL path (before 'final-payment')
+    
+    console.log('Processing final payment for order ID:', id);
     
     const session = await getServerSession(authOptions);
     

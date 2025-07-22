@@ -36,8 +36,10 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
   const [error, setError] = useState<Error | null>(null);
   const [buyerNotes, setBuyerNotes] = useState('');
 
-  // Use full payment amount
-  const paymentAmount = service.price;
+  // Calculate 20% upfront payment amount
+  const upfrontPercentage = 0.2; // 20%
+  const paymentAmount = service.price * upfrontPercentage;
+  const finalAmount = service.price - paymentAmount;
 
   // ETH Transaction
   const {
@@ -97,8 +99,13 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
               serviceId: service.id,
               txHash: hash,
               buyerNotes,
-              amount: service.price,
-              currency: service.currency
+              amount: service.price, // Total service price
+              currency: service.currency,
+              paymentType: 'split',
+              upfrontAmount: paymentAmount, // 20% upfront payment
+              finalAmount: finalAmount, // 80% final payment
+              upfrontPaymentStatus: 'completed',
+              finalPaymentStatus: 'pending'
             }),
           });
 
@@ -219,11 +226,27 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
               <div className="flex flex-col space-y-2 mb-4">
                 <div className="flex justify-between items-center">
                   <p className="text-gray-600">
-                    <span className="font-medium">Price:</span>
+                    <span className="font-medium">Total Price:</span>
                   </p>
+                  <p className="text-gray-600">
+                    {service.price} {service.currency}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="font-medium text-gray-600">Upfront Payment (20%):</span>
+                    <InfoIcon className="h-4 w-4 ml-1 text-gray-500" />
+                  </div>
                   <p className="text-gray-600 font-bold">
-                    {paymentAmount} {service.currency}
+                    {paymentAmount.toFixed(2)} {service.currency}
                   </p>
+                </div>
+                <div className="flex justify-between items-center text-sm text-gray-500">
+                  <p>Final Payment (80%):</p>
+                  <p>{finalAmount.toFixed(2)} {service.currency}</p>
+                </div>
+                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                  <p className="text-xs text-blue-700">You'll pay 20% now and the remaining 80% after the service is completed.</p>
                 </div>
               </div>
 
@@ -311,7 +334,7 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
                 disabled={isPending || !service.walletAddress || !isSupportedCurrency}
                 className="flex-1 bg-indigo-700 hover:bg-indigo-800 text-white py-2 rounded-md"
               >
-                {isPending ? 'Processing...' : `Pay ${paymentAmount} ${service.currency}`}
+                {isPending ? 'Processing...' : `Pay ${paymentAmount.toFixed(2)} ${service.currency} (20%)`}
               </Button>
             </div>
           </div>
