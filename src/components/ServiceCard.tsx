@@ -197,7 +197,23 @@ export default function ServiceCard({ service, currentUser, showActions = false,
                     const recipientFid = service.fid;
                     const defaultMessage = `Hi, I'm interested in your service "${service.title}"`;
                     const encodedMessage = encodeURIComponent(defaultMessage);
-                    window.open(`https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`, '_blank');
+                    const messageUrl = `https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`;
+                    
+                    try {
+                      // Import and use the SDK dynamically
+                      // This is the correct way to use the SDK for iOS compatibility
+                      import('@farcaster/miniapp-sdk').then(({ sdk }) => {
+                        sdk.actions.openUrl(messageUrl);
+                      }).catch(err => {
+                        console.error('Error importing Farcaster SDK:', err);
+                        // Fallback to window.open if SDK import fails
+                        window.open(messageUrl, '_blank');
+                      });
+                    } catch (error) {
+                      console.error('Error using Farcaster SDK:', error);
+                      // Fallback to window.open
+                      window.open(messageUrl, '_blank');
+                    }
                   }}
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />

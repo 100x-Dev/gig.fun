@@ -646,36 +646,31 @@ export default function OrdersPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        // Create a public post message about the order
+                        // Get the recipient FID based on the view (purchased or sold)
                         const recipientFid = view === 'purchased' ? order.seller_fid : order.buyer_fid;
-                        const defaultMessage = `Hi, I'm messaging about the order for "${order.service.title}" (Order ID: ${order.id.slice(0, 8)}...)`;                        
+                        const defaultMessage = `About our order for "${order.service.title}" (Order ID: ${order.id.slice(0, 8)}...)`;
                         const encodedMessage = encodeURIComponent(defaultMessage);
+                        const messageUrl = `https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`;
                         
-                        // Detect iOS device
-                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-                        
-                        if (isIOS) {
-                          // iOS-specific handling
-                          // First try with the app scheme
-                          const farcasterURL = `https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`;
-                          
-                          // Create a temporary anchor element
-                          const link = document.createElement('a');
-                          link.setAttribute('href', farcasterURL);
-                          link.setAttribute('target', '_blank');
-                          link.setAttribute('rel', 'noopener noreferrer');
-                          
-                          // Simulate a click
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        } else {
-                          // Regular handling for Android and desktop
-                          window.open(`https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`, '_blank');
+                        try {
+                          // Import and use the SDK dynamically - same approach as in ServiceCard
+                          import('@farcaster/miniapp-sdk').then(({ sdk }) => {
+                            sdk.actions.openUrl(messageUrl);
+                          }).catch(err => {
+                            console.error('Error importing Farcaster SDK:', err);
+                            // Fallback to window.open if SDK import fails
+                            window.open(messageUrl, '_blank');
+                          });
+                        } catch (error) {
+                          console.error('Error using Farcaster SDK:', error);
+                          // Fallback to window.open
+                          window.open(messageUrl, '_blank');
                         }
                       }}
                     >
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Message on Farcaster
+                      Message
                     </Button>
 
                     {/* Final Payment Button - Only show for buyers when service is in-progress and final payment is pending */}
