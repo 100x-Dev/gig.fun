@@ -35,7 +35,8 @@ export async function GET(request: Request) {
           currency,
           seller_fid: fid,
           seller_username: user_name,
-          seller_pfp: user_pfp
+          seller_pfp: user_pfp,
+          wallet_address
         )
       `);
 

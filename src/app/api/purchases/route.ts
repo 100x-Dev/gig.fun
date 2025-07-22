@@ -125,7 +125,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create purchase record
+    // Get payment type from request body (default to 'full' if not specified)
+    const paymentType = body.paymentType || 'full';
+    const upfrontAmount = body.upfrontAmount || amount;
+    const finalAmount = body.finalAmount || 0;
+    const upfrontPaymentStatus = body.upfrontPaymentStatus || 'completed';
+    const finalPaymentStatus = body.finalPaymentStatus || 'not_required';
+    
+    // Create purchase record with split payment information
     const { data: purchase, error: purchaseError } = await supabase
       .from('purchases')
       .insert({
@@ -137,6 +144,13 @@ export async function POST(request: Request) {
         payment_tx_hash: txHash || null,
         status: 'pending',
         buyer_notes: buyerNotes || null,
+        payment_type: paymentType,
+        upfront_amount: upfrontAmount,
+        final_amount: finalAmount,
+        upfront_payment_tx_hash: txHash || null,
+        final_payment_tx_hash: null,
+        upfront_payment_status: upfrontPaymentStatus,
+        final_payment_status: finalPaymentStatus
       })
       .select()
       .single();

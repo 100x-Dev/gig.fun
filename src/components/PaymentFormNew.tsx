@@ -6,6 +6,8 @@ import { Textarea } from './ui/Textarea';
 import { Label } from './ui/Label';
 import { Service } from '../types/service';
 import toast from 'react-hot-toast';
+import { Badge } from './ui/Badge';
+import { InfoIcon } from 'lucide-react';
 
 // USDC contract details on Base
 const USDC_CONTRACT_ADDRESS = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
@@ -34,20 +36,23 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
   const [error, setError] = useState<Error | null>(null);
   const [buyerNotes, setBuyerNotes] = useState('');
 
+  // Use full payment amount
+  const paymentAmount = service.price;
+
   // ETH Transaction
-  const { 
-    data: ethHash, 
-    error: ethError, 
-    isPending: isEthPending, 
-    sendTransaction 
+  const {
+    data: ethHash,
+    error: ethError,
+    isPending: isEthPending,
+    sendTransaction
   } = useSendTransaction();
 
   // USDC Transaction with error suppression
-  const { 
-    data: usdcHash, 
-    error: usdcError, 
-    isPending: isUspcPending, 
-    writeContractAsync 
+  const {
+    data: usdcHash,
+    error: usdcError,
+    isPending: isUspcPending,
+    writeContractAsync
   } = useWriteContract();
 
   // Combined pending state
@@ -81,8 +86,8 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
       const createPurchase = async () => {
         try {
           setIsProcessing(true);
-          
-          // Call API to create purchase record
+
+          // Call API to create purchase record with split payment details
           const response = await fetch('/api/purchases', {
             method: 'POST',
             headers: {
@@ -93,7 +98,7 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
               txHash: hash,
               buyerNotes,
               amount: service.price,
-              currency: service.currency,
+              currency: service.currency
             }),
           });
 
@@ -104,16 +109,16 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
 
           // Purchase created successfully
           toast.success('Purchase completed successfully!');
-          
+
           // Wait a moment before closing
           setTimeout(() => {
             setIsProcessing(false);
             onClose();
           }, 2000);
-          
+
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-          
+
           // Set the error in the local state to display it in the form
           setError(new Error(errorMessage));
           setIsProcessing(false);
@@ -143,23 +148,24 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
       if (service.currency === 'ETH') {
         // Handle ETH payment
         // Ensure wallet address is properly formatted as 0x-prefixed string
-        const walletAddress = service.walletAddress?.startsWith('0x') 
-          ? service.walletAddress as `0x${string}` 
+        const walletAddress = service.walletAddress?.startsWith('0x')
+          ? service.walletAddress as `0x${string}`
           : `0x${service.walletAddress}` as `0x${string}`;
-          
+
+        // Send the full payment amount
         sendTransaction({
           to: walletAddress,
-          value: parseEther(service.price.toString()),
+          value: parseEther(paymentAmount.toString()),
         });
       } else if (service.currency === 'USDC') {
         // Handle USDC payment
-        const amount = parseUnits(service.price.toString(), 6); // USDC has 6 decimals
-        
+        const amount = parseUnits(paymentAmount.toString(), 6); // USDC has 6 decimals
+
         // Ensure wallet address is properly formatted as 0x-prefixed string
-        const walletAddress = service.walletAddress?.startsWith('0x') 
-          ? service.walletAddress as `0x${string}` 
+        const walletAddress = service.walletAddress?.startsWith('0x')
+          ? service.walletAddress as `0x${string}`
           : `0x${service.walletAddress}` as `0x${string}`;
-          
+
         await writeContractAsync({
           address: USDC_CONTRACT_ADDRESS as `0x${string}`,
           abi: USDC_ABI,
@@ -171,7 +177,7 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      
+
       // Set the error in the local state to display it in the form
       setError(new Error(errorMessage));
 
@@ -191,7 +197,7 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
-      
+
       {/* Modal */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -199,26 +205,36 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
           <div className="bg-indigo-700 px-6 py-4">
             <h2 className="text-xl font-bold text-white">Complete Your Booking</h2>
           </div>
-          
+
           {/* Content */}
           <div className="px-6 pt-4 pb-0">
             <p className="font-medium text-lg mb-4">{service.title}</p>
-            
+
             <div className="mb-2">
               <p className="text-gray-600 mb-2">
                 <span className="font-medium">Provider:</span> {service.userName}
               </p>
-              <p className="text-gray-600 mb-2">
-                <span className="font-medium">Price:</span> {service.price} {service.currency}
-              </p>
+
+
+              <div className="flex flex-col space-y-2 mb-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-600">
+                    <span className="font-medium">Price:</span>
+                  </p>
+                  <p className="text-gray-600 font-bold">
+                    {paymentAmount} {service.currency}
+                  </p>
+                </div>
+              </div>
+
               <p className="text-sm text-gray-600 break-all mb-4">
                 <span className="font-medium">To:</span> {service.walletAddress}
               </p>
             </div>
-            
+
             <div className="mb-6">
               <Label htmlFor="buyer_notes" className="block mb-2">Notes for Seller (Optional)</Label>
-              <Textarea 
+              <Textarea
                 id="buyer_notes"
                 value={buyerNotes}
                 onChange={(e) => setBuyerNotes(e.target.value)}
@@ -226,7 +242,7 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
                 className="w-full border border-gray-300 rounded-md p-2"
               />
             </div>
-            
+
             {/* Status Messages */}
             {!isSupportedCurrency && (
               <div className="mb-2">
@@ -237,16 +253,16 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
                 </div>
               </div>
             )}
-            
+
             {hash && (
               <div className="mb-2">
                 <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                   <p className="text-green-700">
                     Transaction submitted!{' '}
-                    <a 
-                      href={`https://basescan.org/tx/${hash}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      href={`https://basescan.org/tx/${hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-indigo-700 underline"
                     >
                       View on Basescan
@@ -260,42 +276,42 @@ export default function PaymentFormNew({ service, onClose }: PaymentFormProps) {
                 </div>
               </div>
             )}
-            
+
             {errorMessage && errorMessage.trim() !== '' && (
               <div className="mb-2">
                 <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                   <p className="text-red-700">
                     {errorMessage.toLowerCase().includes('insufficient funds') ||
-                     errorMessage.toLowerCase().includes('insufficient balance') ||
-                     errorMessage.toLowerCase().includes('exceeds balance')
+                      errorMessage.toLowerCase().includes('insufficient balance') ||
+                      errorMessage.toLowerCase().includes('exceeds balance')
                       ? 'Insufficient balance. Please ensure you have enough funds.'
                       : errorMessage.includes('User rejected the request')
-                      ? 'Transaction was cancelled.'
-                      : `Error: ${errorMessage}`}
+                        ? 'Transaction was cancelled.'
+                        : `Error: ${errorMessage}`}
                   </p>
                 </div>
               </div>
             )}
           </div>
-          
+
           {/* Footer */}
           <div className="bg-gray-50 px-6 pt-2 pb-4">
             <div className="flex flex-row gap-3 justify-between">
-              <Button 
-                variant="outline" 
-                onClick={onClose} 
+              <Button
+                variant="outline"
+                onClick={onClose}
                 disabled={isPending}
                 className="flex-1 border border-indigo-700 text-indigo-700 hover:bg-indigo-50 py-2 rounded-md"
               >
                 Cancel
               </Button>
-              
-              <Button 
-                onClick={handlePayment} 
+
+              <Button
+                onClick={handlePayment}
                 disabled={isPending || !service.walletAddress || !isSupportedCurrency}
                 className="flex-1 bg-indigo-700 hover:bg-indigo-800 text-white py-2 rounded-md"
               >
-                {isPending ? 'Processing...' : `Pay ${service.price} ${service.currency}`}
+                {isPending ? 'Processing...' : `Pay ${paymentAmount} ${service.currency}`}
               </Button>
             </div>
           </div>

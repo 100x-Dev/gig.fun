@@ -5,11 +5,30 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '~/components/ui/Button';
+import { CreditCard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/Dialog';
 import { Textarea } from '~/components/ui/Textarea';
 import { Loader2, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { useSendTransaction, useWriteContract, useAccount } from 'wagmi';
+import { parseEther, parseUnits } from 'viem';
+import toast from 'react-hot-toast';
+
+// USDC contract details on Base
+const USDC_CONTRACT_ADDRESS = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+const USDC_ABI = [
+  {
+    name: 'transfer',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'to', type: 'address' },
+      { name: 'value', type: 'uint256' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+] as const;
 
 // Initialize Farcaster SDK
 const initFarcasterSDK = async () => {
@@ -35,6 +54,8 @@ type Order = {
   created_at: string;
   updated_at: string;
   seller_notes?: string;
+  final_payment_tx_hash?: string;
+  final_payment_date?: string;
   service: {
     id: string;
     title: string;
@@ -45,6 +66,7 @@ type Order = {
     seller_username: string;
     seller_pfp: string;
     status?: 'active' | 'inactive';
+    wallet_address?: string;
   };
   // The API doesn't return separate buyer/seller objects, so we'll create them from the available data
   buyer?: {
@@ -59,11 +81,15 @@ type Order = {
     display_name: string;
     pfp_url: string;
   };
+  payment_type?: 'split';
+  final_payment_status?: 'pending' | 'completed';
+  final_amount?: number;
 };
 
 export default function OrdersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { address } = useAccount();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,8 +99,27 @@ export default function OrdersPage() {
   const [currentNote, setCurrentNote] = useState('');
   const [isNoteSaving, setIsNoteSaving] = useState(false);
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+  const [isFinalPaymentDialogOpen, setIsFinalPaymentDialogOpen] = useState(false);
+  const [isFinalPaymentProcessing, setIsFinalPaymentProcessing] = useState(false);
+  const [finalPaymentError, setFinalPaymentError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [isFarcasterInitialized, setIsFarcasterInitialized] = useState(false);
+  
+  // ETH Transaction hook
+  const { 
+    data: ethHash, 
+    error: ethError, 
+    isPending: isEthPending, 
+    sendTransaction 
+  } = useSendTransaction();
+  
+  // USDC Transaction hook
+  const { 
+    data: usdcHash,
+    error: usdcError,
+    isPending: isUsdcPending,
+    writeContractAsync 
+  } = useWriteContract();
 
   // Initialize Farcaster SDK
   useEffect(() => {
@@ -99,6 +144,82 @@ export default function OrdersPage() {
     };
   }, [isFarcasterInitialized]);
 
+  // Handle ETH transaction completion
+  useEffect(() => {
+    if (ethHash && selectedOrder) {
+      // Transaction was successful, now update the order in the database
+      const updateOrderWithHash = async () => {
+        try {
+          const response = await fetch(`/api/orders/${selectedOrder.id}/final-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ txHash: ethHash }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to process final payment.');
+          }
+
+          // Update the order in the local state
+          setOrders(orders.map(o => 
+            o.id === selectedOrder.id ? { ...o, final_payment_status: 'completed', final_payment_tx_hash: ethHash } : o
+          ));
+
+          toast.success('Final payment completed successfully!');
+          setIsFinalPaymentDialogOpen(false);
+          setSelectedOrder(null);
+        } catch (error: any) {
+          setFinalPaymentError(error.message);
+        } finally {
+          setIsFinalPaymentProcessing(false);
+        }
+      };
+
+      updateOrderWithHash();
+    }
+  }, [ethHash, selectedOrder, orders]);
+
+  // Handle USDC transaction completion
+  useEffect(() => {
+    if (usdcHash && selectedOrder) {
+      // Transaction was successful, now update the order in the database
+      const updateOrderWithHash = async () => {
+        try {
+          const response = await fetch(`/api/orders/${selectedOrder.id}/final-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ txHash: usdcHash }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to process final payment.');
+          }
+
+          // Update the order in the local state
+          setOrders(orders.map(o => 
+            o.id === selectedOrder.id ? { ...o, final_payment_status: 'completed', final_payment_tx_hash: usdcHash } : o
+          ));
+
+          toast.success('Final payment completed successfully!');
+          setIsFinalPaymentDialogOpen(false);
+          setSelectedOrder(null);
+        } catch (error: any) {
+          setFinalPaymentError(error.message);
+        } finally {
+          setIsFinalPaymentProcessing(false);
+        }
+      };
+
+      updateOrderWithHash();
+    }
+  }, [usdcHash, selectedOrder, orders]);
+
   // Fetch orders based on the current view
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -117,24 +238,38 @@ export default function OrdersPage() {
         const data = await response.json();
         
         // Transform the data to match our expected structure
-        const transformedData = data.map((order: any) => ({
-          ...order,
-          seller_notes: order.seller_notes || '',
-          // For purchased view, the seller is from the service
-          seller: {
-            id: String(order.service?.seller_fid || ''),
-            username: order.service?.seller_username || 'Unknown',
-            display_name: order.service?.seller_username || 'Unknown',
-            pfp_url: order.service?.seller_pfp || ''
-          },
-          // For ordered view, the buyer is the buyer_fid (we don't have buyer details in the API)
-          buyer: {
-            id: String(order.buyer_fid),
-            username: `User ${String(order.buyer_fid).slice(0, 6)}`,
-            display_name: `User ${String(order.buyer_fid).slice(0, 6)}`,
-            pfp_url: ''
+        const transformedData = data.map((order: any) => {
+          // Normalize status values for UI consistency
+          let normalizedStatus = order.status;
+          if (normalizedStatus === 'in_progress') {
+            normalizedStatus = 'in-progress';
           }
-        })) as Order[];
+          
+          return {
+            ...order,
+            status: normalizedStatus, // Use the normalized status
+            seller_notes: order.seller_notes || '',
+            // For purchased view, the seller is from the service
+            seller: {
+              id: String(order.service?.seller_fid || ''),
+              username: order.service?.seller_username || 'Unknown',
+              display_name: order.service?.seller_username || 'Unknown',
+              pfp_url: order.service?.seller_pfp || ''
+            },
+            // For ordered view, the buyer is the buyer_fid (we don't have buyer details in the API)
+            buyer: {
+              id: String(order.buyer_fid),
+              username: `User ${String(order.buyer_fid).slice(0, 6)}`,
+              display_name: `User ${String(order.buyer_fid).slice(0, 6)}`,
+              pfp_url: ''
+            },
+            // Add wallet address to the service object
+            service: {
+              ...order.service,
+              walletAddress: order.service?.wallet_address || null
+            }
+          };
+        }) as Order[];
         
         setOrders(transformedData);
         setError(null);
@@ -183,12 +318,86 @@ export default function OrdersPage() {
     }
   };
 
-  const handleStatusChange = async (newStatus: Order['status']) => {
+  // Handle blockchain transaction for final payment
+  const handleFinalPayment = async () => {
     if (!selectedOrder) return;
-    
+
+    setIsFinalPaymentProcessing(true);
+    setFinalPaymentError(null);
+
     try {
+      // Calculate final payment amount
+      const finalAmount = selectedOrder.final_amount || selectedOrder.amount / 2;
+      
+      // For debugging - log the service object
+      console.log('Service object:', selectedOrder.service);
+      
+      // Get wallet address from the service object
+      // The field is named wallet_address in the database and API response
+      const receiverAddress = selectedOrder.service.wallet_address || '';
+      
+      if (!receiverAddress) {
+        throw new Error('Service provider wallet address is missing');
+      }
+      
+      console.log('Using wallet address:', receiverAddress);
+
+      if (selectedOrder.currency === 'ETH') {
+        // Handle ETH payment
+        // Ensure wallet address is properly formatted as 0x-prefixed string
+        const walletAddress = receiverAddress.startsWith('0x') 
+          ? receiverAddress as `0x${string}` 
+          : `0x${receiverAddress}` as `0x${string}`;
+            
+        sendTransaction({
+          to: walletAddress,
+          value: parseEther(finalAmount.toString()),
+        });
+        
+      } else if (selectedOrder.currency === 'USDC') {
+        // Handle USDC payment
+        // Ensure wallet address is properly formatted as 0x-prefixed string
+        const walletAddress = receiverAddress.startsWith('0x') 
+          ? receiverAddress as `0x${string}` 
+          : `0x${receiverAddress}` as `0x${string}`;
+            
+        const amount = parseUnits(finalAmount.toString(), 6);
+        await writeContractAsync({
+          address: USDC_CONTRACT_ADDRESS,
+          abi: USDC_ABI,
+          functionName: 'transfer',
+          args: [walletAddress, amount],
+        });
+        
+        // We'll let the useEffect handle the API call after transaction is complete
+      } else {
+        throw new Error(`Unsupported currency: ${selectedOrder.currency}`);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setFinalPaymentError(errorMessage);
+      setIsFinalPaymentProcessing(false);
+      
+      // Only log unexpected errors to the console
+      const isUserRejected = errorMessage.includes('User rejected the request');
+      const isInsufficientFunds = errorMessage.toLowerCase().includes('insufficient funds');
+      
+      if (!isUserRejected && !isInsufficientFunds) {
+        console.error('Payment error:', err);
+      }
+    }
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      // Disable status updating for all orders
       setIsStatusUpdating(true);
-      const response = await fetch(`/api/orders/${selectedOrder.id}/status`, {
+      
+      // Store the ID of the order being updated
+      const currentOrderId = orderId;
+      
+      // Make the API request
+      const response = await fetch(`/api/orders/${currentOrderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -197,18 +406,33 @@ export default function OrdersPage() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to update status: ${errorData.error || 'Unknown error'}`);
       }
       
-      // Refresh orders to show the updated status
-      const updatedOrders = orders.map(order => 
-        order.id === selectedOrder.id 
-          ? { ...order, status: newStatus }
-          : order
-      ) as Order[];
+      // Get the response data
+      const responseData = await response.json();
+      
+      // Create a new orders array with the updated status
+      // Make sure we're only updating the specific order that was changed
+      const updatedOrders = orders.map(order => {
+        if (order.id === currentOrderId) {
+          // Normalize status for UI consistency
+          let displayStatus = responseData.status;
+          if (displayStatus === 'in_progress') {
+            displayStatus = 'in-progress';
+          }
+          
+          return { ...order, status: displayStatus };
+        }
+        return order;
+      });
+      
+      // Update the orders state with the new array
       setOrders(updatedOrders);
     } catch (err) {
       console.error('Error updating status:', err);
+      alert(`Error updating status: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsStatusUpdating(false);
     }
@@ -341,8 +565,7 @@ export default function OrdersPage() {
                           <select
                             value={order.status}
                             onChange={(e) => {
-                              setSelectedOrder(order);
-                              handleStatusChange(e.target.value as Order['status']);
+                              handleStatusChange(order.id, e.target.value as Order['status']);
                             }}
                             disabled={isStatusUpdating}
                             className={`appearance-none px-3 py-1 pr-8 rounded-full text-xs font-medium ${
@@ -380,6 +603,40 @@ export default function OrdersPage() {
                 <p className="text-sm text-black line-clamp-2">
                   {order.service.description}
                 </p>
+                
+                {/* Payment Information */}
+                {order.payment_type === 'split' && (
+                  <div className="mt-4 bg-gray-50 dark:bg-gray-800/30 rounded-md p-3 text-sm">
+                    <h4 className="font-medium text-[var(--primary)] mb-2">Payment Information</h4>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Initial Payment:</span>
+                        <span className="font-medium">✓ Paid {order.amount/2} {order.currency}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Final Payment:</span>
+                        {order.final_payment_status === 'pending' ? (
+                          <span className="font-medium text-amber-600 dark:text-amber-400">⏳ Pending {order.final_amount || order.amount/2} {order.currency}</span>
+                        ) : (
+                          <span className="font-medium">✓ Paid {order.final_amount || order.amount/2} {order.currency}</span>
+                        )}
+                      </div>
+                      {order.final_payment_tx_hash && (
+                        <div className="flex justify-between">
+                          <span className="text-[var(--text-secondary)]">Transaction:</span>
+                          <span className="font-mono text-xs truncate max-w-[180px]" title={order.final_payment_tx_hash}>
+                            {order.final_payment_tx_hash.substring(0, 10)}...{order.final_payment_tx_hash.substring(order.final_payment_tx_hash.length - 8)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Total:</span>
+                        <span className="font-medium">{order.amount} {order.currency}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="mt-5 flex items-center justify-between text-sm">
                   <span className="text-black">
                     Ordered on {new Date(order.created_at).toLocaleDateString()}
@@ -398,6 +655,35 @@ export default function OrdersPage() {
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Message on Farcaster
                     </Button>
+
+                    {/* Final Payment Button - Only show for buyers when service is in-progress and final payment is pending */}
+                    {/* Debug info - check browser console */}
+                    {(() => {
+                      console.log(`Order ${order.id} debug:`, {
+                        view,
+                        payment_type: order.payment_type,
+                        status: order.status,
+                        final_payment_status: order.final_payment_status
+                      });
+                      return null;
+                    })()}
+                    {view === 'purchased' && 
+                     order.payment_type === 'split' && 
+                     order.status === 'completed' && 
+                     order.final_payment_status === 'pending' && (
+                      <Button
+                        size="sm"
+                        className="bg-indigo-700 hover:bg-indigo-800 text-white"
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setFinalPaymentError(null); // Clear previous errors
+                          setIsFinalPaymentDialogOpen(true);
+                        }}
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Pay Remaining {order.final_amount} {order.currency}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -424,7 +710,7 @@ export default function OrdersPage() {
                 className="min-h-[120px]"
               />
               <div className="flex justify-end space-x-2">
-                <Button
+                <Button 
                   variant="outline"
                   onClick={() => {
                     setIsNoteDialogOpen(false);
@@ -446,6 +732,69 @@ export default function OrdersPage() {
                   ) : (
                     'Save Note'
                   )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Final Payment Dialog */}
+      {selectedOrder && (
+        <Dialog open={isFinalPaymentDialogOpen} onOpenChange={setIsFinalPaymentDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Complete Your Payment</DialogTitle>
+              <DialogDescription>
+                You are about to pay the final amount for the service: <strong>{selectedOrder.service.title}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-center my-4">
+                <p className="text-sm text-gray-500">Final Amount</p>
+                <p className="text-3xl font-bold">{selectedOrder.final_amount || selectedOrder.amount/2} {selectedOrder.currency}</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  <p>Click the button below to complete your final payment for this order.</p>
+                </div>
+                
+                <Button
+                  onClick={() => handleFinalPayment()}
+                  disabled={isFinalPaymentProcessing || isEthPending || isUsdcPending}
+                  className="w-full bg-indigo-700 hover:bg-indigo-800 text-white"
+                >
+                  {isFinalPaymentProcessing || isEthPending || isUsdcPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {isEthPending || isUsdcPending ? 'Waiting for wallet confirmation...' : 'Processing payment...'}
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Complete Final Payment ({selectedOrder.final_amount || selectedOrder.amount/2} {selectedOrder.currency})
+                    </>
+                  )}
+                </Button>
+                
+                {(ethError || usdcError) && !finalPaymentError && (
+                  <p className="text-red-500 text-sm text-center mt-2">
+                    {(ethError || usdcError)?.message || 'Transaction failed. Please try again.'}
+                  </p>
+                )}
+              </div>
+              
+              {finalPaymentError && (
+                <p className="text-red-500 text-sm text-center">{finalPaymentError}</p>
+              )}
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsFinalPaymentDialogOpen(false)}
+                  disabled={isFinalPaymentProcessing}
+                >
+                  Cancel
                 </Button>
               </div>
             </div>

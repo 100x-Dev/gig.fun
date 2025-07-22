@@ -7,7 +7,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const ALLOWED_STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'] as const;
+const ALLOWED_STATUSES = ['pending', 'in_progress', 'in-progress', 'completed', 'cancelled'] as const;
 type OrderStatus = (typeof ALLOWED_STATUSES)[number];
 
 export async function PATCH(request: Request) {
@@ -55,6 +55,12 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // Normalize status (convert 'in-progress' to 'in_progress' for database consistency)
+    let normalizedStatus = status;
+    if (status === 'in-progress') {
+      normalizedStatus = 'in_progress';
+    }
+    
     // Prepare update payload
     const updatePayload: {
       status: string;
@@ -62,14 +68,14 @@ export async function PATCH(request: Request) {
       completed_at?: string;
       cancelled_at?: string;
     } = {
-      status,
+      status: normalizedStatus,
       updated_at: new Date().toISOString(),
     };
 
     // Set appropriate timestamps based on status
-    if (status === 'completed') {
+    if (normalizedStatus === 'completed') {
       updatePayload.completed_at = new Date().toISOString();
-    } else if (status === 'cancelled') {
+    } else if (normalizedStatus === 'cancelled') {
       updatePayload.cancelled_at = new Date().toISOString();
     }
 
