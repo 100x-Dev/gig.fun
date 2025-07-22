@@ -647,9 +647,31 @@ export default function OrdersPage() {
                       size="sm"
                       onClick={() => {
                         const recipientFid = view === 'purchased' ? order.seller_fid : order.buyer_fid;
-                        const defaultMessage = `Hi, I'm messaging about the order for "${order.service.title}" (Order ID: ${order.id.slice(0, 8)}...)`;
+                        const defaultMessage = `Hi, I'm messaging about the order for "${order.service.title}" (Order ID: ${order.id.slice(0, 8)}...)`;                        
                         const encodedMessage = encodeURIComponent(defaultMessage);
-                        window.open(`https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`, '_blank');
+                        
+                        // Detect iOS device
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+                        
+                        if (isIOS) {
+                          // iOS-specific handling
+                          // First try with the app scheme
+                          const farcasterURL = `https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`;
+                          
+                          // Create a temporary anchor element
+                          const link = document.createElement('a');
+                          link.setAttribute('href', farcasterURL);
+                          link.setAttribute('target', '_blank');
+                          link.setAttribute('rel', 'noopener noreferrer');
+                          
+                          // Simulate a click
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        } else {
+                          // Regular handling for Android and desktop
+                          window.open(`https://farcaster.xyz/~/inbox/create/${recipientFid}?text=${encodedMessage}`, '_blank');
+                        }
                       }}
                     >
                       <MessageSquare className="w-4 h-4 mr-2" />
